@@ -113,30 +113,17 @@ export function determineRunContext(
   media: number,
   gameRuns: RawRun[],
   record: number
-): 'Máximo' | 'Exploración' | 'Anomalía' | 'Estándar' {
-  if (yo <= record) {
+): 'Máximo' | 'Exploración' | 'Anomalía' | 'Cansancio' {
+  if (media === 0) return 'Exploración';
+  const diferencia = (media - yo) / media;
+  
+  if (diferencia >= 0.3) {
     return 'Máximo';
-  }
-
-  if (gameRuns.length < 3) {
-    return yo < media ? 'Estándar' : 'Exploración';
-  }
-
-  // Calculate mean and std dev of previous times to evaluate anomalies
-  const times = gameRuns.map(r => r.yo);
-  const sum = times.reduce((a, b) => a + b, 0);
-  const mean = sum / times.length;
-  const variance = times.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / times.length;
-  const stdDev = Math.sqrt(variance);
-
-  // If time is significantly higher than average (e.g. mean + 1.5 * stdDev) -> Anomaly!
-  if (yo > mean + 1.5 * stdDev) {
+  } else if (diferencia >= 0) {
+    return 'Exploración';
+  } else if (diferencia >= -0.3) {
     return 'Anomalía';
+  } else {
+    return 'Cansancio';
   }
-
-  if (yo < media) {
-    return 'Estándar';
-  }
-
-  return 'Exploración';
 }

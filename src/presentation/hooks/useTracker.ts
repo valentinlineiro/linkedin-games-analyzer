@@ -223,25 +223,44 @@ export function useTracker() {
   const handleImportRuns = async (importedRuns: Omit<RawRun, 'id' | 'ahorro' | 'contexto'>[]) => {
     setIsSyncingLive(true);
     try {
-      const runsToSave: RawRun[] = importedRuns.map((newRunData, idx) => {
-        const ahorro = Number((newRunData.media - newRunData.yo).toFixed(2));
-        return {
-          ...newRunData,
-          id: `imported-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 7)}`,
-          ahorro,
-          contexto: 'Exploración',
-        };
-      });
+      // Sort imported runs chronologically to evaluate context correctly
+      const sortedImported = [...importedRuns].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      
+      let currentRunsHistory = [...runs];
+      const runsToSave: RawRun[] = [];
 
-      const mergedRuns = [...runs, ...runsToSave];
+      for (let i = 0; i < sortedImported.length; i++) {
+        const newRunData = sortedImported[i];
+        const ahorro = Number((newRunData.media - newRunData.yo).toFixed(2));
+        
+        // Filter history for game
+        const gameRuns = currentRunsHistory.filter(r => r.juego === newRunData.juego);
+        
+        // Determine best record time to evaluate "Máximo"
+        const record = gameRuns.length > 0 
+          ? Math.min(...gameRuns.map(r => r.yo)) 
+          : DEFAULT_RECORD_TIMES[newRunData.juego];
+
+        const contexto = determineRunContext(newRunData.yo, newRunData.media, gameRuns, record);
+
+        const run: RawRun = {
+          ...newRunData,
+          id: `imported-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`,
+          ahorro,
+          contexto
+        };
+
+        runsToSave.push(run);
+        currentRunsHistory.push(run);
+      }
 
       if (user) {
         await firestoreRepo.seedRuns(runsToSave);
         const reloaded = await firestoreRepo.loadRuns();
         setRuns(reloaded);
       } else {
-        await localStorageRepo.seedRuns(mergedRuns);
-        setRuns(mergedRuns);
+        await localStorageRepo.seedRuns(currentRunsHistory);
+        setRuns(currentRunsHistory);
       }
     } catch (err: any) {
       alert(`Error al importar partidas: ${err.message}`);

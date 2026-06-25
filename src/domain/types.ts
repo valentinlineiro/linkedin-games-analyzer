@@ -26,7 +26,7 @@ export interface RawRun {
   media: number;      // Community average in seconds
   mediaSemana?: number; // 7-day rolling average (seconds)
   ahorro: number;     // media - yo
-  contexto: 'Máximo' | 'Exploración' | 'Anomalía' | 'Estándar';
+  contexto: 'Máximo' | 'Exploración' | 'Anomalía' | 'Cansancio';
   nota?: string;
 }
 

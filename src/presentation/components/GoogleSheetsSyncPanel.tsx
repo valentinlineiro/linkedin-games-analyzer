@@ -174,48 +174,133 @@ export default function GoogleSheetsSyncPanel({
         const lines = text.split('\n');
         if (lines.length < 2) throw new Error('El archivo CSV está vacío.');
 
+        // 1. Find the header line index dynamically to skip leading empty/comma-only rows
+        let headerLineIdx = -1;
+        for (let i = 0; i < lines.length; i++) {
+          const lowerLine = lines[i].toLowerCase();
+          if (
+            lowerLine.includes('fecha') || 
+            lowerLine.includes('yo') || 
+            lowerLine.includes('tiempo') || 
+            lowerLine.includes('media') || 
+            lowerLine.includes('date') || 
+            lowerLine.includes('juego')
+          ) {
+            headerLineIdx = i;
+            break;
+          }
+        }
+
+        if (headerLineIdx === -1) {
+          throw new Error('No se pudo encontrar una fila de encabezados válida en el archivo CSV.');
+        }
+
         const importedRuns: Omit<RawRun, 'id' | 'ahorro' | 'contexto'>[] = [];
         
         // Match headers to find correct columns (supports English and Spanish names)
-        const headerLine = lines[0].toLowerCase();
+        const headerLine = lines[headerLineIdx].toLowerCase();
         const headers = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
         
-        const tsIdx = headers.findIndex(h => h.includes('time') || h.includes('marca') || h.includes('fecha'));
+        const tsIdx = headers.findIndex(h => h.includes('time') || h.includes('date') || h.includes('marca') || h.includes('fecha'));
         const gameIdx = headers.findIndex(h => h.includes('juego') || h.includes('game'));
-        const yoIdx = headers.findIndex(h => h.includes('yo') || h.includes('tiempo') || h.includes('personal') || h.includes('personal'));
-        const mediaIdx = headers.findIndex(h => h.includes('media') || h.includes('comunidad') || h.includes('average'));
+        const yoIdx = headers.findIndex(h => (h.includes('yo') || h.includes('tiempo') || h.includes('personal') || h.includes('mine') || h.includes('me')) && !h.includes('comunidad') && !h.includes('media') && !h.includes('average'));
+        const mediaIdx = headers.findIndex(h => (h.includes('media') || h.includes('comunidad') || h.includes('average') || h.includes('community') || h.includes('global')) && !h.includes('semana') && !h.includes('week'));
         const noteIdx = headers.findIndex(h => h.includes('nota') || h.includes('comentario') || h.includes('comment') || h.includes('note'));
 
-        for (let i = 1; i < lines.length; i++) {
+        // Helper to parse dates (like DD/MM/YYYY)
+        const parseDateStr = (dateStr: string): string => {
+          const parts = dateStr.trim().split(/[\/\-]/);
+          if (parts.length === 3) {
+            const day = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10);
+            const year = parseInt(parts[2], 10);
+            
+            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+              const fullYear = year < 100 ? year + 2000 : year;
+              const d = new Date(fullYear, month - 1, day);
+              if (!isNaN(d.getTime())) {
+                return d.toISOString();
+              }
+            }
+          }
+          const nativeDate = new Date(dateStr);
+          if (!isNaN(nativeDate.getTime())) {
+            return nativeDate.toISOString();
+          }
+          throw new Error(`Formato de fecha no válido: "${dateStr}"`);
+        };
+
+        // Helper to parse European decimals (e.g., "19,29" or "0,8")
+        const parseDecimalFloat = (val: string): number => {
+          if (!val) return NaN;
+          const clean = val.replace(/[^0-9\.\,\-]/g, '').replace(',', '.');
+          return parseFloat(clean);
+        };
+
+        // If game column is missing, try detecting from filename
+        let fileDetectedGame: GameType | null = null;
+        const fileNameLower = file.name.toLowerCase();
+        if (fileNameLower.includes('patches')) fileDetectedGame = 'Patches';
+        else if (fileNameLower.includes('zip')) fileDetectedGame = 'Zip';
+        else if (fileNameLower.includes('sudoku')) fileDetectedGame = 'Sudoku';
+        else if (fileNameLower.includes('queens')) fileDetectedGame = 'Queens';
+
+        let gameFallback: GameType | null = fileDetectedGame;
+
+        if (gameIdx === -1 && !fileDetectedGame) {
+          const response = window.prompt(
+            `No se encontró una columna "Juego" en este archivo y tampoco pudimos deducirlo por el nombre: "${file.name}".\n\nPor favor, escribe el juego al que pertenecen estas partidas (Patches, Zip, Sudoku o Queens) para importarlas todas bajo esta categoría:`
+          );
+          if (response === null) return; // cancelled by user
+          
+          let cleanResponse = response.trim();
+          cleanResponse = cleanResponse.charAt(0).toUpperCase() + cleanResponse.slice(1).toLowerCase();
+          
+          if (['Patches', 'Zip', 'Sudoku', 'Queens'].includes(cleanResponse)) {
+            gameFallback = cleanResponse as GameType;
+          } else {
+            throw new Error('Nombre del juego no reconocido. La importación fue cancelada.');
+          }
+        }
+
+        // Loop through data lines AFTER the header line index
+        for (let i = headerLineIdx + 1; i < lines.length; i++) {
           const line = lines[i].trim();
           if (!line) continue;
 
           // Split columns while respecting quoted values containing commas
-          const matches = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || line.split(',');
-          const cols = matches.map(c => c.trim().replace(/^"|"$/g, ''));
+          const matches = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)|\s*,|[^,]+/g) || line.split(',');
+          const cols = matches.map(c => {
+            const raw = c.trim();
+            if (raw.startsWith(',')) return '';
+            return raw.replace(/^"|"$/g, '');
+          }).filter(c => c !== ''); // simple cleaning
 
-          if (cols.length < 3) continue;
+          // Direct fallback if split regex got empty filters
+          const backupCols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+          const activeCols = backupCols.length >= cols.length ? backupCols : cols;
 
-          const timestampRaw = tsIdx !== -1 && cols[tsIdx] ? cols[tsIdx] : new Date().toISOString();
-          const juegoRaw = gameIdx !== -1 ? cols[gameIdx] : '';
-          const yoRaw = parseFloat(yoIdx !== -1 ? cols[yoIdx] : cols[2]);
-          const mediaRaw = parseFloat(mediaIdx !== -1 ? cols[mediaIdx] : cols[3]);
-          const nota = noteIdx !== -1 && cols[noteIdx] ? cols[noteIdx] : '';
+          if (activeCols.length < 2) continue;
 
-          if (!juegoRaw || isNaN(yoRaw) || isNaN(mediaRaw)) continue;
+          const timestampRaw = tsIdx !== -1 && activeCols[tsIdx] ? activeCols[tsIdx] : new Date().toISOString();
+          const juegoRaw = gameIdx !== -1 && activeCols[gameIdx] ? activeCols[gameIdx] : (gameFallback || '');
+          const yoRaw = yoIdx !== -1 ? parseDecimalFloat(activeCols[yoIdx]) : parseDecimalFloat(activeCols[1]);
+          const mediaRaw = mediaIdx !== -1 ? parseDecimalFloat(activeCols[mediaIdx]) : parseDecimalFloat(activeCols[2]);
+          const nota = noteIdx !== -1 && activeCols[noteIdx] ? activeCols[noteIdx] : '';
+
+          if (!juegoRaw || isNaN(yoRaw)) continue;
 
           // Standardize Game Types
           let juegoClean = juegoRaw.trim();
-          // Capitalize first letter
           juegoClean = juegoClean.charAt(0).toUpperCase() + juegoClean.slice(1).toLowerCase();
           
           if (!['Patches', 'Zip', 'Sudoku', 'Queens'].includes(juegoClean)) continue;
 
           importedRuns.push({
-            timestamp: new Date(timestampRaw).toISOString(),
+            timestamp: parseDateStr(timestampRaw),
             juego: juegoClean as GameType,
             yo: yoRaw,
-            media: mediaRaw,
+            media: isNaN(mediaRaw) ? yoRaw * 1.5 : mediaRaw, // fallback community avg
             nota: nota.replace(/""/g, '"') // unescape quotes
           });
         }
@@ -224,8 +309,9 @@ export default function GoogleSheetsSyncPanel({
           throw new Error('No se encontraron partidas válidas. Asegúrate de usar los encabezados correctos.');
         }
 
+        const gameScopeInfo = gameFallback ? ` de tipo [${gameFallback}]` : '';
         const confirmed = window.confirm(
-          `Se detectaron ${importedRuns.length} partidas válidas para importar.\n\n¿Deseas agregarlas a tu base de datos actual?`
+          `Se detectaron ${importedRuns.length} partidas válidas${gameScopeInfo} para importar.\n\n¿Deseas agregarlas a tu base de datos actual?`
         );
 
         if (confirmed) {
