@@ -71,6 +71,11 @@ export class FirebaseAuthGateway implements AuthGateway {
     return this.cachedAccessToken;
   }
 
+  getCurrentUser(): AuthUser | null {
+    const user = this.auth.currentUser;
+    return user ? this.mapFirebaseUser(user) : null;
+  }
+
   private mapFirebaseUser(user: FirebaseUser): AuthUser {
     return {
       uid: user.uid,

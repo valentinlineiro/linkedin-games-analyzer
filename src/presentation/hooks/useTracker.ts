@@ -4,26 +4,18 @@ import { INITIAL_RUNS, DEFAULT_RECORD_TIMES } from '../../domain/constants';
 import { recalculateMetrics, determineRunContext } from '../../domain/metrics';
 import { FirebaseAuthGateway } from '../../infrastructure/auth/FirebaseAuthGateway';
 import { LocalStorageRepository } from '../../infrastructure/storage/LocalStorageRepository';
-import { GoogleSheetsRepository } from '../../infrastructure/storage/GoogleSheetsRepository';
-
-// Helper to extract spreadsheet ID from URL or input
-export const extractSpreadsheetId = (input: string): string | null => {
-  if (!input) return null;
-  const match = input.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-  return match ? match[1] : input.trim();
-};
+import { FirestoreRepository } from '../../infrastructure/storage/FirestoreRepository';
 
 export function useTracker() {
-  // Instantiate core gateways and repositories (adapted from infrastructure)
+  // Instantiate core gateways and repositories
   const authGateway = useMemo(() => new FirebaseAuthGateway(), []);
   const localStorageRepo = useMemo(() => new LocalStorageRepository(), []);
-  const googleSheetsRepo = useMemo(() => new GoogleSheetsRepository(null, () => authGateway.getAccessToken()), [authGateway]);
+  const firestoreRepo = useMemo(() => new FirestoreRepository(() => authGateway.getCurrentUser()?.uid || null), [authGateway]);
 
   // UI / App States
   const [runs, setRuns] = useState<RawRun[]>([]);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [activeSpreadsheet, setActiveSpreadsheet] = useState<SpreadsheetInfo | null>(null);
   const [isSyncingLive, setIsSyncingLive] = useState(false);
 
   // 1. Subscribe to Authentication States
@@ -33,12 +25,30 @@ export function useTracker() {
         setUser(currentUser);
         setAuthLoading(false);
 
-        // Auto-connect sheet if logged in and a saved ID exists
-        const savedSheetId = localStorage.getItem('google_spreadsheet_id');
-        if (savedSheetId && currentUser) {
-          handleConnectSheet(savedSheetId, true);
-        } else if (!currentUser) {
-          // If not authenticated, fall back to localStorage repository
+        if (currentUser) {
+          setIsSyncingLive(true);
+          firestoreRepo.loadRuns()
+            .then((cloudRuns) => {
+              if (cloudRuns.length > 0) {
+                setRuns(cloudRuns);
+              } else {
+                // If cloud is empty, fallback to local storage
+                localStorageRepo.loadRuns().then((localRuns) => {
+                  setRuns(localRuns.length > 0 ? localRuns : INITIAL_RUNS);
+                });
+              }
+            })
+            .catch((err) => {
+              console.error('Failed to load runs from Firestore:', err);
+              localStorageRepo.loadRuns().then((localRuns) => {
+                setRuns(localRuns.length > 0 ? localRuns : INITIAL_RUNS);
+              });
+            })
+            .finally(() => {
+              setIsSyncingLive(false);
+            });
+        } else {
+          // If not authenticated, load from localStorage
           localStorageRepo.loadRuns().then((localRuns) => {
             setRuns(localRuns.length > 0 ? localRuns : INITIAL_RUNS);
           });
@@ -49,7 +59,7 @@ export function useTracker() {
       }
     );
     return () => unsubscribe();
-  }, [authGateway]);
+  }, [authGateway, firestoreRepo, localStorageRepo]);
 
   // 2. Recalculate metrics on data change
   const { sortedRuns, summaries } = useMemo(() => {
@@ -73,11 +83,6 @@ export function useTracker() {
     try {
       const loggedUser = await authGateway.signIn();
       setUser(loggedUser);
-      
-      const savedSheetId = localStorage.getItem('google_spreadsheet_id');
-      if (savedSheetId) {
-        await handleConnectSheet(savedSheetId);
-      }
     } catch (err: any) {
       alert(err.message || 'Error al iniciar sesión con Google.');
     } finally {
@@ -89,71 +94,8 @@ export function useTracker() {
     try {
       await authGateway.signOut();
       setUser(null);
-      handleDisconnectSheet();
     } catch (err) {
       alert('Error al cerrar sesión.');
-    }
-  };
-
-  // Actions: Spreadsheet Connection
-  const handleConnectSheet = async (sheetIdOrUrl: string, isAuto = false) => {
-    const cleanId = extractSpreadsheetId(sheetIdOrUrl);
-    if (!cleanId) return;
-
-    setIsSyncingLive(true);
-    try {
-      googleSheetsRepo.setSpreadsheetId(cleanId);
-      const details = await googleSheetsRepo.fetchSpreadsheetDetails(cleanId);
-      setActiveSpreadsheet(details);
-      localStorage.setItem('google_spreadsheet_id', cleanId);
-
-      const loadedRuns = await googleSheetsRepo.loadRuns();
-      setRuns(loadedRuns);
-    } catch (err: any) {
-      console.error('Spreadsheet connection failed:', err);
-      if (!isAuto) {
-        alert(err.message || 'No se pudo conectar la hoja de cálculo.');
-        throw err;
-      } else {
-        handleDisconnectSheet();
-      }
-    } finally {
-      setIsSyncingLive(false);
-    }
-  };
-
-  const handleDisconnectSheet = () => {
-    setActiveSpreadsheet(null);
-    localStorage.removeItem('google_spreadsheet_id');
-    // Load local storage cache as fallback
-    localStorageRepo.loadRuns().then((localRuns) => {
-      setRuns(localRuns.length > 0 ? localRuns : INITIAL_RUNS);
-    });
-  };
-
-  const handleCreateNewSheet = async () => {
-    setIsSyncingLive(true);
-    try {
-      const details = await googleSheetsRepo.createNewSpreadsheet('LinkedIn Games Tracker & Analytics');
-      
-      if (runs.length > 0) {
-        const confirmed = window.confirm(
-          `Se ha creado con éxito la nueva hoja "${details.title}" en tu Google Drive.\n\n¿Deseas migrar e inicializar tu hoja de cálculo con las ${runs.length} partidas de rendimiento que tienes actualmente en pantalla para no perder ningún dato?`
-        );
-        if (confirmed) {
-          await googleSheetsRepo.appendMultipleRuns(runs);
-        }
-      }
-
-      googleSheetsRepo.setSpreadsheetId(details.id);
-      const loaded = await googleSheetsRepo.loadRuns();
-      setActiveSpreadsheet(details);
-      setRuns(loaded);
-      localStorage.setItem('google_spreadsheet_id', details.id);
-    } catch (err: any) {
-      alert(err.message || 'No se pudo crear la hoja de cálculo de Google.');
-    } finally {
-      setIsSyncingLive(false);
     }
   };
 
@@ -170,14 +112,14 @@ export function useTracker() {
       contexto,
     };
 
-    if (activeSpreadsheet) {
+    if (user) {
       setIsSyncingLive(true);
       try {
-        await googleSheetsRepo.saveRun(runToSave);
-        const reloaded = await googleSheetsRepo.loadRuns();
+        await firestoreRepo.saveRun(runToSave);
+        const reloaded = await firestoreRepo.loadRuns();
         setRuns(reloaded);
       } catch (err: any) {
-        alert(`Error al registrar en Google Sheets: ${err.message || 'La partida se guardó localmente.'}`);
+        alert(`Error al registrar en Firestore: ${err.message || 'La partida se guardó localmente.'}`);
       } finally {
         setIsSyncingLive(false);
       }
@@ -188,9 +130,9 @@ export function useTracker() {
   };
 
   const handleDeleteRun = async (id: string) => {
-    const isCloud = !!activeSpreadsheet;
+    const isCloud = !!user;
     const confirmMessage = isCloud
-      ? '¿Estás seguro de que deseas eliminar permanentemente este registro de tu hoja de cálculo en Google Drive?'
+      ? '¿Estás seguro de que deseas eliminar permanentemente este registro de tu base de datos en la nube?'
       : '¿Estás seguro de que deseas eliminar permanentemente este registro del historial local?';
 
     const confirmed = window.confirm(confirmMessage);
@@ -199,11 +141,11 @@ export function useTracker() {
     if (isCloud) {
       setIsSyncingLive(true);
       try {
-        await googleSheetsRepo.deleteRun(id);
-        const reloaded = await googleSheetsRepo.loadRuns();
+        await firestoreRepo.deleteRun(id);
+        const reloaded = await firestoreRepo.loadRuns();
         setRuns(reloaded);
       } catch (err: any) {
-        alert(`Error al eliminar de Google Sheets: ${err.message || 'No se pudo procesar la eliminación.'}`);
+        alert(`Error al eliminar de Firestore: ${err.message || 'No se pudo procesar la eliminación.'}`);
       } finally {
         setIsSyncingLive(false);
       }
@@ -213,46 +155,96 @@ export function useTracker() {
     }
   };
 
-  const handleResetData = () => {
-    if (activeSpreadsheet) {
-      alert('La opción de restablecer historial está deshabilitada mientras estás conectado a una hoja de cálculo en Google Drive.');
-      return;
-    }
+  const handleResetData = async () => {
+    const isCloud = !!user;
+    const confirmMessage = isCloud
+      ? '¿Deseas restablecer todas tus partidas en la nube a los valores históricos originales?'
+      : '¿Deseas restablecer todos los registros diarios a sus valores históricos originales? Se perderán las nuevas partidas que hayas registrado.';
 
-    if (window.confirm('¿Deseas restablecer todos los registros diarios a sus valores históricos originales? Se perderán las nuevas partidas que hayas registrado.')) {
-      localStorageRepo.seedRuns(INITIAL_RUNS);
-      setRuns(INITIAL_RUNS);
+    if (window.confirm(confirmMessage)) {
+      if (isCloud) {
+        setIsSyncingLive(true);
+        try {
+          // Clear current runs and seed with INITIAL_RUNS
+          // Firestore does not have an atomic 'clear collection' API, so we delete each one or seed directly.
+          // Since it's a seed, we can just delete the active runs and save the initial runs.
+          for (const run of runs) {
+            await firestoreRepo.deleteRun(run.id);
+          }
+          await firestoreRepo.seedRuns(INITIAL_RUNS);
+          const reloaded = await firestoreRepo.loadRuns();
+          setRuns(reloaded);
+        } catch (err: any) {
+          alert('Error al restablecer datos en la nube: ' + err.message);
+        } finally {
+          setIsSyncingLive(false);
+        }
+      } else {
+        localStorageRepo.seedRuns(INITIAL_RUNS);
+        setRuns(INITIAL_RUNS);
+      }
     }
   };
 
-  const handlePullFromSheet = async () => {
-    if (!activeSpreadsheet) return;
+  const handlePullFromCloud = async () => {
+    if (!user) return;
     setIsSyncingLive(true);
     try {
-      const loaded = await googleSheetsRepo.loadRuns();
+      const loaded = await firestoreRepo.loadRuns();
       setRuns(loaded);
     } catch (err: any) {
-      alert(err.message || 'Error al descargar datos de Google Sheets.');
+      alert(err.message || 'Error al descargar datos de la nube.');
       throw err;
     } finally {
       setIsSyncingLive(false);
     }
   };
 
-  const handlePushToSheet = async () => {
-    if (!activeSpreadsheet) return;
+  const handlePushToCloud = async () => {
+    if (!user) return;
     if (runs.length === 0) return;
     const confirmed = window.confirm(
-      '¿Deseas subir todas tus partidas de rendimiento actuales a Google Sheets? Se añadirán a las respuestas existentes.'
+      '¿Deseas subir todas tus partidas de rendimiento actuales a la nube? Se combinarán con tus partidas existentes.'
     );
     if (!confirmed) return;
     setIsSyncingLive(true);
     try {
-      await googleSheetsRepo.appendMultipleRuns(runs);
-      const loaded = await googleSheetsRepo.loadRuns();
+      await firestoreRepo.seedRuns(runs);
+      const loaded = await firestoreRepo.loadRuns();
       setRuns(loaded);
     } catch (err: any) {
-      alert(err.message || 'Error al subir partidas a Google Sheets.');
+      alert(err.message || 'Error al subir partidas a la nube.');
+      throw err;
+    } finally {
+      setIsSyncingLive(false);
+    }
+  };
+
+  const handleImportRuns = async (importedRuns: Omit<RawRun, 'id' | 'ahorro' | 'contexto'>[]) => {
+    setIsSyncingLive(true);
+    try {
+      const runsToSave: RawRun[] = importedRuns.map((newRunData, idx) => {
+        const ahorro = Number((newRunData.media - newRunData.yo).toFixed(2));
+        return {
+          ...newRunData,
+          id: `imported-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 7)}`,
+          ahorro,
+          contexto: 'Exploración',
+        };
+      });
+
+      const mergedRuns = [...runs, ...runsToSave];
+
+      if (user) {
+        await firestoreRepo.seedRuns(runsToSave);
+        const reloaded = await firestoreRepo.loadRuns();
+        setRuns(reloaded);
+      } else {
+        await localStorageRepo.seedRuns(mergedRuns);
+        setRuns(mergedRuns);
+      }
+    } catch (err: any) {
+      alert(`Error al importar partidas: ${err.message}`);
       throw err;
     } finally {
       setIsSyncingLive(false);
@@ -266,17 +258,19 @@ export function useTracker() {
     recordTimes,
     user,
     authLoading,
-    activeSpreadsheet,
+    activeSpreadsheet: user ? { id: 'firestore', title: 'Base de datos Firestore', url: '#' } : null,
     isSyncingLive,
     onSignIn: handleSignIn,
     onSignOut: handleSignOut,
-    onConnectSheet: handleConnectSheet,
-    onDisconnectSheet: handleDisconnectSheet,
-    onCreateNewSheet: handleCreateNewSheet,
-    onPullFromSheet: handlePullFromSheet,
-    onPushToSheet: handlePushToSheet,
+    onConnectSheet: () => {},
+    onDisconnectSheet: handleSignOut,
+    onCreateNewSheet: () => {},
+    onPullFromSheet: handlePullFromCloud,
+    onPushToSheet: handlePushToCloud,
     onAddRun: handleAddRun,
     onDeleteRun: handleDeleteRun,
     onResetData: handleResetData,
+    onImportRuns: handleImportRuns,
   };
 }
+

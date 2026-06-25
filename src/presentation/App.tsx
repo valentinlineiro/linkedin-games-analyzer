@@ -27,6 +27,7 @@ export default function App() {
     onAddRun,
     onDeleteRun,
     onResetData,
+    onImportRuns,
   } = useTracker();
 
   return (
@@ -43,7 +44,7 @@ export default function App() {
                 LinkedIn Games <span className="font-light text-neutral-400">Tracker &amp; Analytics</span>
               </h1>
               <p className="text-xs text-neutral-500">
-                Análisis de Rendimiento Diario • Detección de Anomalías Estadísticas • {activeSpreadsheet ? 'Sincronizado con Google Sheets' : 'Guardado Local'}
+                Análisis de Rendimiento Diario • Detección de Anomalías Estadísticas • {activeSpreadsheet ? 'Sincronizado con Firestore' : 'Guardado Local'}
               </p>
             </div>
           </div>
@@ -61,7 +62,7 @@ export default function App() {
             
             {activeSpreadsheet ? (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-                <Cloud className="w-3.5 h-3.5" /> {isSyncingLive ? 'Guardando en la nube...' : 'Google Sheets Conectado'}
+                <Cloud className="w-3.5 h-3.5" /> {isSyncingLive ? 'Guardando en la nube...' : 'Sincronización en la Nube Activa'}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border bg-neutral-800 text-neutral-400 border-neutral-700">
@@ -105,6 +106,7 @@ export default function App() {
               onCreateNewSheet={onCreateNewSheet}
               onPullFromSheet={onPullFromSheet}
               onPushToSheet={onPushToSheet}
+              onImportRuns={onImportRuns}
             />
           </div>
           <div className="lg:col-span-5">

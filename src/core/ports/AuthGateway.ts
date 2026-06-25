@@ -25,4 +25,9 @@ export interface AuthGateway {
    * Exposes active Google OAuth token.
    */
   getAccessToken(): string | null;
+
+  /**
+   * Returns the currently authenticated user if present.
+   */
+  getCurrentUser(): AuthUser | null;
 }
