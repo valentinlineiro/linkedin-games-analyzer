@@ -13,6 +13,7 @@ export default function App() {
     sortedRuns,
     summaries,
     recordTimes,
+    lastCommunityAverages,
     user,
     authLoading,
     activeSpreadsheet,
@@ -84,7 +85,7 @@ export default function App() {
             <PerformanceCharts runs={sortedRuns} />
           </div>
           <div className="lg:col-span-1">
-            <NewRunForm onAddRun={onAddRun} recordTimes={recordTimes} isLiveMode={!!activeSpreadsheet} />
+            <NewRunForm onAddRun={onAddRun} recordTimes={recordTimes} lastCommunityAverages={lastCommunityAverages} isLiveMode={!!activeSpreadsheet} />
           </div>
         </section>
 

@@ -77,6 +77,22 @@ export function useTracker() {
     return mapping;
   }, [summaries]);
 
+  // 4. Keep track of the latest entered community average for each game
+  const lastCommunityAverages = useMemo(() => {
+    const mapping: Record<GameType, number> = {
+      Patches: 45.74,
+      Zip: 31.49,
+      Sudoku: 118.44,
+      Queens: 84.03,
+    };
+    runs.forEach((run) => {
+      if (run.media > 0) {
+        mapping[run.juego] = run.media;
+      }
+    });
+    return mapping;
+  }, [runs]);
+
   // Actions: Authentication
   const handleSignIn = async () => {
     setAuthLoading(true);
@@ -271,6 +287,7 @@ export function useTracker() {
     sortedRuns,
     summaries,
     recordTimes,
+    lastCommunityAverages,
     user,
     authLoading,
     activeSpreadsheet: user ? { id: 'firestore', title: 'Base de datos Firestore', url: '#' } : null,
