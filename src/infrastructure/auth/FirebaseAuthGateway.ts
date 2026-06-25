@@ -21,8 +21,6 @@ export class FirebaseAuthGateway implements AuthGateway {
     const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     this.auth = getAuth(app);
     this.provider = new GoogleAuthProvider();
-    this.provider.addScope('https://www.googleapis.com/auth/spreadsheets');
-    this.provider.addScope('https://www.googleapis.com/auth/drive.file');
   }
 
   async signIn(): Promise<AuthUser | null> {
@@ -31,10 +29,9 @@ export class FirebaseAuthGateway implements AuthGateway {
       this.isSigningIn = true;
       const result = await signInWithPopup(this.auth, this.provider);
       const credential = GoogleAuthProvider.credentialFromResult(result);
-      if (!credential?.accessToken) {
-        throw new Error('No se pudo obtener el token de acceso de Google OAuth.');
+      if (credential?.accessToken) {
+        this.cachedAccessToken = credential.accessToken;
       }
-      this.cachedAccessToken = credential.accessToken;
       return this.mapFirebaseUser(result.user);
     } catch (error) {
       console.error('Error in Google Sign-In:', error);
