@@ -50,15 +50,13 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3">
-            {!activeSpreadsheet && (
-              <button
-                onClick={onResetData}
-                className="px-3 py-1.5 border border-neutral-800 text-neutral-400 rounded-xl hover:bg-neutral-800 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
-                title="Restablecer datos originales"
-              >
-                <RefreshCw className="w-3.5 h-3.5" /> Restablecer Historial
-              </button>
-            )}
+            <button
+              onClick={onResetData}
+              className="px-3 py-1.5 border border-neutral-800 text-neutral-400 rounded-xl hover:bg-neutral-800 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Limpiar historial de partidas"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Limpiar Historial
+            </button>
             
             {activeSpreadsheet ? (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">

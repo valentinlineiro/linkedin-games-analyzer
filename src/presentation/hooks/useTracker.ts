@@ -34,14 +34,14 @@ export function useTracker() {
               } else {
                 // If cloud is empty, fallback to local storage
                 localStorageRepo.loadRuns().then((localRuns) => {
-                  setRuns(localRuns.length > 0 ? localRuns : INITIAL_RUNS);
+                  setRuns(localRuns.length > 0 ? localRuns : []);
                 });
               }
             })
             .catch((err) => {
               console.error('Failed to load runs from Firestore:', err);
               localStorageRepo.loadRuns().then((localRuns) => {
-                setRuns(localRuns.length > 0 ? localRuns : INITIAL_RUNS);
+                setRuns(localRuns.length > 0 ? localRuns : []);
               });
             })
             .finally(() => {
@@ -50,7 +50,7 @@ export function useTracker() {
         } else {
           // If not authenticated, load from localStorage
           localStorageRepo.loadRuns().then((localRuns) => {
-            setRuns(localRuns.length > 0 ? localRuns : INITIAL_RUNS);
+            setRuns(localRuns.length > 0 ? localRuns : []);
           });
         }
       },
@@ -158,30 +158,26 @@ export function useTracker() {
   const handleResetData = async () => {
     const isCloud = !!user;
     const confirmMessage = isCloud
-      ? '¿Deseas restablecer todas tus partidas en la nube a los valores históricos originales?'
-      : '¿Deseas restablecer todos los registros diarios a sus valores históricos originales? Se perderán las nuevas partidas que hayas registrado.';
+      ? '¿Deseas eliminar permanentemente todo tu historial de partidas de la nube? Esta acción no se puede deshacer.'
+      : '¿Deseas eliminar permanentemente todo tu historial de partidas local? Se perderán todas tus estadísticas locales.';
 
     if (window.confirm(confirmMessage)) {
       if (isCloud) {
         setIsSyncingLive(true);
         try {
-          // Clear current runs and seed with INITIAL_RUNS
-          // Firestore does not have an atomic 'clear collection' API, so we delete each one or seed directly.
-          // Since it's a seed, we can just delete the active runs and save the initial runs.
+          // Delete all documents sequentially
           for (const run of runs) {
             await firestoreRepo.deleteRun(run.id);
           }
-          await firestoreRepo.seedRuns(INITIAL_RUNS);
-          const reloaded = await firestoreRepo.loadRuns();
-          setRuns(reloaded);
+          setRuns([]);
         } catch (err: any) {
-          alert('Error al restablecer datos en la nube: ' + err.message);
+          alert('Error al vaciar datos en la nube: ' + err.message);
         } finally {
           setIsSyncingLive(false);
         }
       } else {
-        localStorageRepo.seedRuns(INITIAL_RUNS);
-        setRuns(INITIAL_RUNS);
+        localStorageRepo.seedRuns([]);
+        setRuns([]);
       }
     }
   };
