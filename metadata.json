@@ -1,0 +1,6 @@
+{
+  "name": "LinkedIn Games Analyzer",
+  "description": "Herramienta analítica para el desempeño diario en juegos de LinkedIn, detección de anomalías y sincronización con Google Sheets.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
