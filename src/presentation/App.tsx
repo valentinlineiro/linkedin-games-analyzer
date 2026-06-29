@@ -208,38 +208,49 @@ export default function App() {
         )}
 
         {/* Theoretical Briefing Footer Accordion */}
-        <section className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 space-y-4" id="theoretical-briefing-panel">
-          <div>
-            <h3 className="font-display text-md font-bold text-white flex items-center gap-1.5">
-              <GraduationCap className="w-5 h-5 text-emerald-400" /> Resumen Ejecutivo de Análisis de Datos
-            </h3>
-            <p className="text-xs text-neutral-500">
-              Diagnóstico estadístico de tu desempeño competitivo en los juegos de LinkedIn.
-            </p>
-          </div>
+        {hasData && (() => {
+          const patches = summaries.find(s => s.juego === 'Patches');
+          const queens = summaries.find(s => s.juego === 'Queens');
+          const sudoku = summaries.find(s => s.juego === 'Sudoku');
+          const bestGame = [...summaries].sort((a, b) => b.rendimiento - a.rendimiento)[0];
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-neutral-400 leading-relaxed">
-            <div className="space-y-2">
-              <h4 className="font-bold text-white uppercase tracking-wide">1. Ventaja Competitiva Identificada</h4>
-              <p>
-                Al comparar tus medias con el desempeño global de la comunidad, tu mayor ventaja se concentra en <strong>Patches</strong>. Completas el tablero en una media de <strong>{summaries.find(s => s.juego === 'Patches')?.yo.toFixed(2) || '26.21'} segundos</strong> frente a los <strong>45.74 segundos</strong> generales, ahorrando de forma consistente un <strong>{((summaries.find(s => s.juego === 'Patches')?.ahorroPct || 33.56) * 1).toFixed(2)}%</strong> de tiempo (coeficiente de rendimiento de <strong>{(summaries.find(s => s.juego === 'Patches')?.rendimiento || 1.75).toFixed(2)}x</strong>). 
-              </p>
-              <p>
-                Por su parte, en <strong>Queens</strong> demuestras una ventaja comparable con <strong>{(summaries.find(s => s.juego === 'Queens')?.rendimiento || 1.68).toFixed(2)}x</strong> de rendimiento, constituyendo tus dos disciplinas de mayor dominancia técnica. En <strong>Sudoku</strong> destaca una consistencia extrema con <strong>{((summaries.find(s => s.juego === 'Sudoku')?.victoriasPct || 0.95) * 100).toFixed(0)}% de victorias</strong> directas sobre la comunidad, aunque tu margen de ahorro es ligeramente más estrecho ({(summaries.find(s => s.juego === 'Sudoku')?.rendimiento || 1.46).toFixed(2)}x).
-              </p>
-            </div>
+          if (!patches || !queens || !sudoku || !bestGame) return null;
 
-            <div className="space-y-2">
-              <h4 className="font-bold text-white uppercase tracking-wide">2. Gestión de Desviaciones y Anomalías</h4>
-              <p>
-                Los registros fuera de lo común identificados en tu historial (<strong>Patches: 81s, Zip: 49s, Sudoku: 178s, Queens: 88s</strong>) superan significativamente la media móvil histórica semanal (<code className="bg-neutral-950 text-neutral-300 px-1 py-0.5 rounded font-mono border border-neutral-800">Media semana</code>). 
-              </p>
-              <p>
-                Nuestra automatización detecta estas desviaciones evaluando la desviación típica. Al registrarse una anomalía (tiempos con más de 1.5 desviaciones de retraso), el sistema lo etiqueta de inmediato como <strong>"Anomalía"</strong> en lugar de "Exploración", permitiendo limpiar o excluir estas partidas anómalas (provocadas normalmente por fallos físicos del dispositivo o descuidos breves) al realizar proyecciones analíticas futuras.
-              </p>
-            </div>
-          </div>
-        </section>
+          return (
+            <section className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 space-y-4" id="theoretical-briefing-panel">
+              <div>
+                <h3 className="font-display text-md font-bold text-white flex items-center gap-1.5">
+                  <GraduationCap className="w-5 h-5 text-emerald-400" /> Resumen Ejecutivo de Análisis de Datos
+                </h3>
+                <p className="text-xs text-neutral-500">
+                  Diagnóstico estadístico de tu desempeño competitivo en los juegos de LinkedIn.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-neutral-400 leading-relaxed">
+                <div className="space-y-2">
+                  <h4 className="font-bold text-white uppercase tracking-wide">1. Ventaja Competitiva Identificada</h4>
+                  <p>
+                    Tu mayor ventaja se concentra en <strong>{bestGame.juego}</strong>. Completas el tablero en una media de <strong>{bestGame.yo.toFixed(1)}s</strong> frente a los <strong>{bestGame.media.toFixed(1)}s</strong> de la comunidad, con un coeficiente de rendimiento de <strong>{bestGame.rendimiento.toFixed(2)}x</strong>.
+                  </p>
+                  <p>
+                    En <strong>Queens</strong> muestras <strong>{queens.rendimiento.toFixed(2)}x</strong> de rendimiento. En <strong>Sudoku</strong> alcanzas un <strong>{(sudoku.victoriasPct * 100).toFixed(0)}%</strong> de victorias sobre la comunidad ({sudoku.rendimiento.toFixed(2)}x).
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="font-bold text-white uppercase tracking-wide">2. Gestión de Desviaciones y Anomalías</h4>
+                  <p>
+                    El sistema detecta anomalías comparando cada partida con tu media móvil de los últimos 7 días. Tiempos que superen <strong>1.5 desviaciones típicas</strong> por encima de la media se etiquetan automáticamente como <strong>"Anomalía"</strong>.
+                  </p>
+                  <p>
+                    Esto permite excluir partidas afectadas por fallos del dispositivo o distracciones puntuales, manteniendo tus proyecciones analíticas limpias.
+                  </p>
+                </div>
+              </div>
+            </section>
+          );
+        })()}
       </main>
 
       {/* Page Footer */}
