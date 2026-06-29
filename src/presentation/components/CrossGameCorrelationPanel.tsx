@@ -75,35 +75,35 @@ function getOverlapCount(runs: RawRun[], gameA: GameType, gameB: GameType): numb
   return Object.values(dates).filter(d => d.a && d.b).length;
 }
 
-export default function CrossGameCorrelationPanel({ runs }: CrossGameCorrelationPanelProps) {
-  const games: GameType[] = ['Patches', 'Zip', 'Sudoku', 'Queens'];
+const GAMES: GameType[] = ['Patches', 'Zip', 'Sudoku', 'Queens'];
 
+export default function CrossGameCorrelationPanel({ runs }: CrossGameCorrelationPanelProps) {
   // Calculate 4x4 matrix
   const matrix = useMemo(() => {
-    return games.map(gameA => {
-      return games.map(gameB => {
+    return GAMES.map(gameA => {
+      return GAMES.map(gameB => {
         const isDiagonal = gameA === gameB;
         const r = isDiagonal ? 1.00 : calculatePearsonCorrelation(runs, gameA, gameB);
         const overlap = getOverlapCount(runs, gameA, gameB);
         return { gameA, gameB, r, isDiagonal, overlap };
       });
     });
-  }, [runs, games]);
+  }, [runs]);
 
   // Unique pairs list for relationship analysis
   const uniquePairs = useMemo(() => {
     const pairsList: { gameA: GameType; gameB: GameType; r: number; overlap: number }[] = [];
-    for (let i = 0; i < games.length; i++) {
-      for (let j = i + 1; j < games.length; j++) {
-        const gameA = games[i];
-        const gameB = games[j];
+    for (let i = 0; i < GAMES.length; i++) {
+      for (let j = i + 1; j < GAMES.length; j++) {
+        const gameA = GAMES[i];
+        const gameB = GAMES[j];
         const r = calculatePearsonCorrelation(runs, gameA, gameB);
         const overlap = getOverlapCount(runs, gameA, gameB);
         pairsList.push({ gameA, gameB, r, overlap });
       }
     }
     return pairsList;
-  }, [runs, games]);
+  }, [runs]);
 
   // Valid pairs with at least 2 days of overlapping data
   const validPairs = useMemo(() => {
@@ -145,7 +145,7 @@ export default function CrossGameCorrelationPanel({ runs }: CrossGameCorrelation
             </div>
 
             {/* Top Headers */}
-            {games.map(game => (
+            {GAMES.map(game => (
               <div key={`header-top-${game}`} className="flex flex-col items-center justify-center py-2">
                 <span className={`text-[10px] sm:text-xs font-semibold ${gameColors[game].text}`}>{game}</span>
                 <span className={`w-1.5 h-1.5 rounded-full mt-1 ${gameColors[game].dot}`} />
@@ -153,7 +153,7 @@ export default function CrossGameCorrelationPanel({ runs }: CrossGameCorrelation
             ))}
 
             {/* Matrix Rows */}
-            {games.map((gameA, rowIndex) => (
+            {GAMES.map((gameA, rowIndex) => (
               <React.Fragment key={`row-${gameA}`}>
                 {/* Left Label */}
                 <div className="flex items-center justify-end pr-2 py-1 text-right">
