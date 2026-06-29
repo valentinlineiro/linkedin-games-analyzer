@@ -1,0 +1,113 @@
+import { describe, it, expect } from 'vitest';
+import { calculatePearsonCorrelation, calculateWeeklyVolatility, groupRunsByTimeOfDay } from './metrics';
+import { RawRun } from './types';
+
+const mockRuns: RawRun[] = [
+  // Day 1 (Monday, 2026-06-01)
+  { id: '1', timestamp: '2026-06-01T08:30:00Z', juego: 'Patches', yo: 20, media: 40, ahorro: 20, contexto: 'Exploración' },
+  { id: '2', timestamp: '2026-06-01T09:15:00Z', juego: 'Queens', yo: 40, media: 80, ahorro: 40, contexto: 'Exploración' },
+  // Day 2 (Tuesday, 2026-06-02)
+  { id: '3', timestamp: '2026-06-02T10:00:00Z', juego: 'Patches', yo: 30, media: 40, ahorro: 10, contexto: 'Exploración' },
+  { id: '4', timestamp: '2026-06-02T14:20:00Z', juego: 'Queens', yo: 60, media: 80, ahorro: 20, contexto: 'Exploración' },
+  // Day 3 (Wednesday, 2026-06-03)
+  { id: '5', timestamp: '2026-06-03T23:30:00Z', juego: 'Patches', yo: 25, media: 50, ahorro: 25, contexto: 'Exploración' },
+];
+
+describe('Análisis Estadístico Avanzado', () => {
+  describe('calculatePearsonCorrelation', () => {
+    it('calcula correlación de Pearson correctamente para correlación perfecta', () => {
+      // Game ratio = media / yo
+      // Day 1: Patches ratio = 40/20 = 2.0; Queens ratio = 80/40 = 2.0
+      // Day 2: Patches ratio = 40/30 = 1.333; Queens ratio = 80/60 = 1.333
+      // Both sets of data have values: [2.0, 1.333], which correlate perfectly.
+      const corr = calculatePearsonCorrelation(mockRuns, 'Patches', 'Queens');
+      expect(corr).toBeCloseTo(1.0, 2);
+    });
+
+    it('devuelve 0 si hay menos de 2 días coincidentes', () => {
+      const corr = calculatePearsonCorrelation(mockRuns.slice(0, 2), 'Patches', 'Queens');
+      expect(corr).toBe(0);
+    });
+
+    it('devuelve 0 si la desviación estándar es 0 (datos constantes)', () => {
+      const constantRuns: RawRun[] = [
+        { id: '1', timestamp: '2026-06-01T08:30:00Z', juego: 'Patches', yo: 20, media: 40, ahorro: 20, contexto: 'Exploración' },
+        { id: '2', timestamp: '2026-06-01T09:15:00Z', juego: 'Queens', yo: 40, media: 80, ahorro: 40, contexto: 'Exploración' },
+        { id: '3', timestamp: '2026-06-02T10:00:00Z', juego: 'Patches', yo: 20, media: 40, ahorro: 20, contexto: 'Exploración' },
+        { id: '4', timestamp: '2026-06-02T14:20:00Z', juego: 'Queens', yo: 40, media: 80, ahorro: 40, contexto: 'Exploración' },
+      ];
+      const corr = calculatePearsonCorrelation(constantRuns, 'Patches', 'Queens');
+      expect(corr).toBe(0);
+    });
+  });
+
+  describe('calculateWeeklyVolatility', () => {
+    it('calcula volatilidad semanal correctamente', () => {
+      // 2026-06-01 is Monday, week key should be 2026-W23 (let's verify the utility's key)
+      const vol = calculateWeeklyVolatility(mockRuns);
+      expect(vol.length).toBe(1);
+      
+      const firstWeek = vol[0];
+      expect(firstWeek.week).toMatch(/^2026-W\d{2}$/);
+      
+      // Patches times in week 23: 20, 30, 25.
+      // Mean = (20 + 30 + 25) / 3 = 25
+      // Variance = ((20-25)^2 + (30-25)^2 + (25-25)^2) / 3 = (25 + 25 + 0) / 3 = 50 / 3 = 16.6667
+      // stdDev = sqrt(50/3) ≈ 4.08248
+      // Volatility (Coefficient of Variation) = 4.08248 / 25 ≈ 0.163
+      expect(firstWeek.Patches).toBeCloseTo(0.163, 3);
+      
+      // Queens times: 40, 60.
+      // Mean = 50
+      // Variance = ((40-50)^2 + (60-50)^2) / 2 = 100
+      // stdDev = 10
+      // Volatility = 10 / 50 = 0.200
+      expect(firstWeek.Queens).toBeCloseTo(0.200, 3);
+    });
+
+    it('devuelve 0 para juegos con solo 1 partida en la semana', () => {
+      const singleRun: RawRun[] = [
+        { id: '1', timestamp: '2026-06-01T08:30:00Z', juego: 'Patches', yo: 20, media: 40, ahorro: 20, contexto: 'Exploración' }
+      ];
+      const vol = calculateWeeklyVolatility(singleRun);
+      expect(vol[0].Patches).toBe(0);
+    });
+  });
+
+  describe('groupRunsByTimeOfDay', () => {
+    it('agrupa partidas por bloque horario y calcula promedios omitiendo anomalías', () => {
+      const mixedRuns: RawRun[] = [
+        // Mañana (06-12)
+        { id: '1', timestamp: '2026-06-01T08:30:00Z', juego: 'Patches', yo: 20, media: 40, ahorro: 20, contexto: 'Exploración' },
+        { id: '2', timestamp: '2026-06-01T10:00:00Z', juego: 'Patches', yo: 30, media: 40, ahorro: 10, contexto: 'Exploración' },
+        // Tarde (12-18)
+        { id: '3', timestamp: '2026-06-01T14:00:00Z', juego: 'Patches', yo: 25, media: 50, ahorro: 25, contexto: 'Exploración' },
+        // Anomalía - should be ignored
+        { id: '4', timestamp: '2026-06-01T15:00:00Z', juego: 'Patches', yo: 10, media: 40, ahorro: 30, contexto: 'Anomalía' },
+        // Noche (18-00)
+        { id: '5', timestamp: '2026-06-01T19:00:00Z', juego: 'Patches', yo: 50, media: 50, ahorro: 0, contexto: 'Exploración' },
+        // Madrugada (00-06)
+        { id: '6', timestamp: '2026-06-01T03:00:00Z', juego: 'Patches', yo: 40, media: 40, ahorro: 0, contexto: 'Exploración' }
+      ];
+
+      const groups = groupRunsByTimeOfDay(mixedRuns, 'Patches');
+      expect(groups.length).toBe(4);
+
+      // Check Madrugada (00-06): 1 run (yo: 40, ratio: 40/40 = 1.0)
+      const madrugada = groups.find(g => g.block.startsWith('Madrugada'));
+      expect(madrugada).toEqual({ block: 'Madrugada (00-06)', avgYo: 40, count: 1, avgRatio: 1 });
+
+      // Check Mañana (06-12): 2 runs (yo: 20 and 30 -> avgYo: 25. Ratios: 40/20 = 2.0, 40/30 = 1.333 -> avgRatio: 1.67)
+      const manana = groups.find(g => g.block.startsWith('Mañana'));
+      expect(manana).toEqual({ block: 'Mañana (06-12)', avgYo: 25, count: 2, avgRatio: 1.67 });
+
+      // Check Tarde (12-18): 1 run (excl. anomaly) (yo: 25, ratio: 50/25 = 2.0)
+      const tarde = groups.find(g => g.block.startsWith('Tarde'));
+      expect(tarde).toEqual({ block: 'Tarde (12-18)', avgYo: 25, count: 1, avgRatio: 2.0 });
+
+      // Check Noche (18-00): 1 run (yo: 50, ratio: 50/50 = 1.0)
+      const noche = groups.find(g => g.block.startsWith('Noche'));
+      expect(noche).toEqual({ block: 'Noche (18-00)', avgYo: 50, count: 1, avgRatio: 1.0 });
+    });
+  });
+});

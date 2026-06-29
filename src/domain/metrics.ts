@@ -127,3 +127,116 @@ export function determineRunContext(
     return 'Cansancio';
   }
 }
+
+// Helper to extract YYYY-MM-DD from ISO timestamp
+function getLocalDate(isoString: string): string {
+  return isoString.split('T')[0];
+}
+
+// Helper to get ISO Week number in a timezone-independent (UTC) way
+function getWeekYearKey(date: Date): string {
+  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return `${d.getUTCFullYear()}-W${weekNo.toString().padStart(2, '0')}`;
+}
+
+export function calculatePearsonCorrelation(runs: RawRun[], gameA: GameType, gameB: GameType): number {
+  const dates: Record<string, { a?: number; b?: number }> = {};
+  
+  runs.forEach(r => {
+    const date = getLocalDate(r.timestamp);
+    if (!dates[date]) dates[date] = {};
+    const ratio = r.media / r.yo;
+    if (r.juego === gameA) dates[date].a = ratio;
+    if (r.juego === gameB) dates[date].b = ratio;
+  });
+
+  const pairs: { x: number; y: number }[] = [];
+  Object.values(dates).forEach(d => {
+    if (d.a !== undefined && d.b !== undefined) {
+      pairs.push({ x: d.a, y: d.b });
+    }
+  });
+
+  if (pairs.length < 2) return 0;
+
+  const n = pairs.length;
+  const meanX = pairs.reduce((sum, p) => sum + p.x, 0) / n;
+  const meanY = pairs.reduce((sum, p) => sum + p.y, 0) / n;
+
+  let num = 0;
+  let denX = 0;
+  let denY = 0;
+
+  pairs.forEach(p => {
+    const dx = p.x - meanX;
+    const dy = p.y - meanY;
+    num += dx * dy;
+    denX += dx * dx;
+    denY += dy * dy;
+  });
+
+  const den = Math.sqrt(denX * denY);
+  if (den === 0) return 0;
+  return Number((num / den).toFixed(2));
+}
+
+export function calculateWeeklyVolatility(runs: RawRun[]): { week: string; Patches?: number; Zip?: number; Sudoku?: number; Queens?: number; }[] {
+  const weeklyData: Record<string, Record<string, number[]>> = {};
+
+  runs.forEach(r => {
+    const d = new Date(r.timestamp);
+    const weekKey = getWeekYearKey(d);
+    if (!weeklyData[weekKey]) weeklyData[weekKey] = {};
+    if (!weeklyData[weekKey][r.juego]) weeklyData[weekKey][r.juego] = [];
+    weeklyData[weekKey][r.juego].push(r.yo);
+  });
+
+  const results = Object.entries(weeklyData).map(([week, games]) => {
+    const row: any = { week };
+    Object.entries(games).forEach(([juego, times]) => {
+      if (times.length < 2) {
+        row[juego] = 0; // standard deviation is 0 if only 1 game
+        return;
+      }
+      const mean = times.reduce((s, val) => s + val, 0) / times.length;
+      const variance = times.reduce((s, val) => s + Math.pow(val - mean, 2), 0) / times.length;
+      const stdDev = Math.sqrt(variance);
+      row[juego] = Number((stdDev / mean).toFixed(3)); // Coefficient of Variation
+    });
+    return row;
+  });
+
+  return results.sort((a, b) => a.week.localeCompare(b.week));
+}
+
+export function groupRunsByTimeOfDay(runs: RawRun[], game: GameType): { block: string; avgYo: number; count: number; avgRatio: number; }[] {
+  const filtered = runs.filter(r => r.juego === game && r.contexto !== 'Anomalía');
+  const blocks = [
+    { name: 'Madrugada (00-06)', min: 0, max: 6, runs: [] as RawRun[] },
+    { name: 'Mañana (06-12)', min: 6, max: 12, runs: [] as RawRun[] },
+    { name: 'Tarde (12-18)', min: 12, max: 18, runs: [] as RawRun[] },
+    { name: 'Noche (18-00)', min: 18, max: 24, runs: [] as RawRun[] },
+  ];
+
+  filtered.forEach(r => {
+    const hour = new Date(r.timestamp).getUTCHours();
+    const block = blocks.find(b => hour >= b.min && hour < b.max);
+    if (block) block.runs.push(r);
+  });
+
+  return blocks.map(b => {
+    const count = b.runs.length;
+    const avgYo = count > 0 ? Number((b.runs.reduce((s, r) => s + r.yo, 0) / count).toFixed(1)) : 0;
+    const avgRatio = count > 0 ? Number((b.runs.reduce((s, r) => s + (r.media / r.yo), 0) / count).toFixed(2)) : 0;
+    return {
+      block: b.name,
+      avgYo,
+      count,
+      avgRatio,
+    };
+  });
+}
