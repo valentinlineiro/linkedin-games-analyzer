@@ -45,6 +45,7 @@ export function recalculateMetrics(runs: RawRun[]): { sortedRuns: RawRun[]; summ
         contexto: 'Exploración',
         rendimiento: 0,
         volatilidad: 0,
+        deltaSemana: null,
       };
     }
 
@@ -82,6 +83,19 @@ export function recalculateMetrics(runs: RawRun[]): { sortedRuns: RawRun[]; summ
     const stdDev = Math.sqrt(variance);
     const volatilidad = Number((stdDev / mean).toFixed(2));
 
+    // Week-over-week delta: avg of last 7 days vs avg of days 8–14
+    const now = new Date(sortedRuns[sortedRuns.length - 1]?.timestamp ?? Date.now());
+    const ms7 = 7 * 24 * 60 * 60 * 1000;
+    const cutLast = new Date(now.getTime() - ms7);
+    const cutPrev = new Date(now.getTime() - 2 * ms7);
+    const last7 = gameRuns.filter(r => new Date(r.timestamp) >= cutLast);
+    const prev7 = gameRuns.filter(r => new Date(r.timestamp) >= cutPrev && new Date(r.timestamp) < cutLast);
+    const avgLast7 = last7.length > 0 ? last7.reduce((s, r) => s + r.yo, 0) / last7.length : null;
+    const avgPrev7 = prev7.length > 0 ? prev7.reduce((s, r) => s + r.yo, 0) / prev7.length : null;
+    const deltaSemana = avgLast7 !== null && avgPrev7 !== null
+      ? Number((avgLast7 - avgPrev7).toFixed(1))
+      : null;
+
     // For the summary's "Contexto", grab the context of the latest run or "Máximo" if recent runs are excellent
     const latestRun = gameRuns[gameRuns.length - 1];
     const contexto = latestRun ? latestRun.contexto : 'Exploración';
@@ -99,6 +113,7 @@ export function recalculateMetrics(runs: RawRun[]): { sortedRuns: RawRun[]; summ
       contexto,
       rendimiento,
       volatilidad,
+      deltaSemana,
     };
   });
 

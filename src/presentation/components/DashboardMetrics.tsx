@@ -1,6 +1,6 @@
 import React from 'react';
 import { GameSummary } from '../../domain/types';
-import { Target } from 'lucide-react';
+import { Target, TrendingDown, TrendingUp, Minus } from 'lucide-react';
 
 interface DashboardMetricsProps {
   summaries: GameSummary[];
@@ -14,6 +14,9 @@ export default function DashboardMetrics({ summaries }: DashboardMetricsProps) {
       {summaries.map((summary) => {
         const faster = summary.yo < summary.media;
         const pct = Math.abs(summary.ahorroPct);
+        const delta = summary.deltaSemana;
+        const improving = delta !== null && delta < 0;
+        const regressing = delta !== null && delta > 0;
 
         return (
           <div
@@ -36,9 +39,37 @@ export default function DashboardMetrics({ summaries }: DashboardMetricsProps) {
               <span className="text-xs text-neutral-500">vs {fmt(summary.media)}s</span>
             </div>
 
-            <div className="flex items-center gap-1 text-[10px] text-neutral-500">
-              <Target className="w-3 h-3" />
-              Récord: <span className="font-mono text-neutral-400 ml-0.5">{fmt(summary.record, 0)}s</span>
+            <div className="flex items-center justify-between text-[10px] text-neutral-500">
+              <span className="flex items-center gap-1">
+                <Target className="w-3 h-3" />
+                <span className="font-mono text-neutral-400">{fmt(summary.record, 0)}s</span>
+              </span>
+
+              {delta !== null ? (
+                <span className={`flex items-center gap-0.5 font-mono font-semibold ${
+                  improving ? 'text-emerald-400' : regressing ? 'text-rose-400' : 'text-neutral-500'
+                }`}>
+                  {improving
+                    ? <TrendingDown className="w-3 h-3" />
+                    : regressing
+                    ? <TrendingUp className="w-3 h-3" />
+                    : <Minus className="w-3 h-3" />}
+                  {improving ? `${fmt(Math.abs(delta))}s` : regressing ? `+${fmt(delta)}s` : '—'}
+                </span>
+              ) : (
+                <span className="text-neutral-700 text-[10px]">sin datos previos</span>
+              )}
+            </div>
+
+            <div className="h-px bg-neutral-800" />
+
+            <div className="flex items-center justify-between text-[10px]">
+              <span className="text-neutral-500">Victorias</span>
+              <span className={`font-mono font-semibold ${
+                summary.victoriasPct >= 0.7 ? 'text-emerald-400' : summary.victoriasPct >= 0.5 ? 'text-neutral-300' : 'text-rose-400'
+              }`}>
+                {Math.round(summary.victoriasPct * 100)}%
+              </span>
             </div>
           </div>
         );

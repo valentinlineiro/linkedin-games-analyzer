@@ -23,6 +23,7 @@ export const INITIAL_SUMMARY: GameSummary[] = [
     contexto: 'Máximo',
     rendimiento: 1.75,
     volatilidad: 0.70,
+    deltaSemana: null,
   },
   {
     juego: 'Zip',
@@ -37,6 +38,7 @@ export const INITIAL_SUMMARY: GameSummary[] = [
     contexto: 'Máximo',
     rendimiento: 1.42,
     volatilidad: 0.56,
+    deltaSemana: null,
   },
   {
     juego: 'Sudoku',
@@ -51,6 +53,7 @@ export const INITIAL_SUMMARY: GameSummary[] = [
     contexto: 'Máximo',
     rendimiento: 1.46,
     volatilidad: 0.34,
+    deltaSemana: null,
   },
   {
     juego: 'Queens',
@@ -65,6 +68,7 @@ export const INITIAL_SUMMARY: GameSummary[] = [
     contexto: 'Máximo',
     rendimiento: 1.68,
     volatilidad: 0.32,
+    deltaSemana: null,
   },
 ];
 
