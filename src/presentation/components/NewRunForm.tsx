@@ -212,7 +212,7 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
         juego: r.game,
         yo: r.yo,
         media: r.media,
-        nota: nota.trim() || undefined
+        nota: nota.trim() || ''
       }));
 
       await onAddRuns(runsToAdd);
