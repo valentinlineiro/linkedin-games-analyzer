@@ -170,6 +170,7 @@ export default function App() {
           <ChessView
             runs={runs}
             onAddRun={onAddRun}
+            onImportRuns={onImportRuns}
             lastCommunityAverages={lastCommunityAverages}
           />
         )}

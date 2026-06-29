@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { RawRun, GameType } from '../../domain/types';
-import { PlusCircle, TrendingUp, Calendar } from 'lucide-react';
+import { PlusCircle, TrendingUp, Calendar, FileUp } from 'lucide-react';
 import {
   ResponsiveContainer,
   LineChart,
@@ -14,14 +14,105 @@ import {
 interface ChessViewProps {
   runs: RawRun[];
   onAddRun: (run: Omit<RawRun, 'id' | 'ahorro' | 'contexto'>) => void;
+  onImportRuns: (runs: Omit<RawRun, 'id' | 'ahorro' | 'contexto'>[]) => Promise<void>;
   lastCommunityAverages: Record<GameType, number>;
 }
 
-export default function ChessView({ runs, onAddRun, lastCommunityAverages }: ChessViewProps) {
+export default function ChessView({ runs, onAddRun, onImportRuns, lastCommunityAverages }: ChessViewProps) {
   const chessRuns = useMemo(
     () => runs.filter(r => r.juego === 'Chess').sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()),
     [runs]
   );
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importMsg, setImportMsg] = useState<{ text: string; ok: boolean } | null>(null);
+
+  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      try {
+        const text = ev.target?.result as string;
+        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+        if (lines.length < 2) throw new Error('Archivo vacío.');
+
+        // Find header row
+        const headerIdx = lines.findIndex(l => {
+          const low = l.toLowerCase();
+          return low.includes('yo') || low.includes('elo') || low.includes('tiempo') || low.includes('fecha') || low.includes('date');
+        });
+        if (headerIdx === -1) throw new Error('No se encontró fila de encabezados.');
+
+        const headers = lines[headerIdx].split(',').map(h => h.trim().toLowerCase().replace(/^"|"$/g, ''));
+        const col = (terms: string[]) => headers.findIndex(h => terms.some(t => h.includes(t)));
+
+        const tsIdx = col(['time', 'date', 'fecha', 'marca']);
+        const eloIdx = col(['yo', 'elo', 'tiempo personal', 'mine']);
+        const colorIdx = col(['color']);
+        const resultadoIdx = col(['resultado', 'result']);
+        const mediaIdx = col(['media', 'average', 'objetivo', 'target', 'comunidad']);
+        const notaIdx = col(['nota', 'note', 'comment']);
+
+        if (eloIdx === -1) throw new Error('No se encontró columna de ELO / Tiempo Personal.');
+
+        const parseDateStr = (s: string): string => {
+          const parts = s.trim().split(/[\/\-]/);
+          if (parts.length === 3) {
+            const [a, b, c] = parts.map(Number);
+            // DD/MM/YYYY
+            const d = new Date(c < 100 ? c + 2000 : c, b - 1, a);
+            if (!isNaN(d.getTime())) return d.toISOString();
+          }
+          const d = new Date(s);
+          if (!isNaN(d.getTime())) return d.toISOString();
+          throw new Error(`Fecha inválida: "${s}"`);
+        };
+
+        const imported: Omit<RawRun, 'id' | 'ahorro' | 'contexto'>[] = [];
+        for (let i = headerIdx + 1; i < lines.length; i++) {
+          const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+          const eloVal = parseFloat((cols[eloIdx] || '').replace(',', '.'));
+          if (isNaN(eloVal) || eloVal <= 0) continue;
+
+          // Skip rows that clearly belong to another game (if juego column present)
+          const gameIdx = col(['juego', 'game']);
+          if (gameIdx !== -1 && cols[gameIdx] && cols[gameIdx].toLowerCase() !== 'chess') continue;
+
+          const colorRaw = (colorIdx !== -1 ? cols[colorIdx] : '').toUpperCase();
+          const resultadoRaw = (resultadoIdx !== -1 ? cols[resultadoIdx] : '').toUpperCase();
+          const mediaVal = mediaIdx !== -1 ? parseFloat((cols[mediaIdx] || '').replace(',', '.')) : NaN;
+          const tsRaw = tsIdx !== -1 && cols[tsIdx] ? cols[tsIdx] : new Date().toISOString();
+
+          const run: Omit<RawRun, 'id' | 'ahorro' | 'contexto'> = {
+            timestamp: parseDateStr(tsRaw),
+            juego: 'Chess',
+            yo: eloVal,
+            media: !isNaN(mediaVal) && mediaVal > 0 ? mediaVal : (lastCommunityAverages['Chess'] || eloVal),
+            nota: notaIdx !== -1 ? (cols[notaIdx] || '') : '',
+          };
+          if (['B', 'N'].includes(colorRaw)) run.color = colorRaw as 'B' | 'N';
+          if (['V', 'T', 'D'].includes(resultadoRaw)) run.resultado = resultadoRaw as 'V' | 'T' | 'D';
+          imported.push(run);
+        }
+
+        if (imported.length === 0) throw new Error('No se encontraron partidas de Chess válidas.');
+
+        const ok = window.confirm(`Se encontraron ${imported.length} partidas de Chess. ¿Importar?`);
+        if (ok) {
+          await onImportRuns(imported);
+          setImportMsg({ text: `${imported.length} partidas importadas`, ok: true });
+          setTimeout(() => setImportMsg(null), 4000);
+        }
+      } catch (err: any) {
+        setImportMsg({ text: err.message || 'Error al procesar el CSV.', ok: false });
+        setTimeout(() => setImportMsg(null), 6000);
+      } finally {
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+    };
+    reader.readAsText(file);
+  };
 
   // Form state
   const [color, setColor] = useState<'B' | 'N' | null>(null);
@@ -140,9 +231,24 @@ export default function ChessView({ runs, onAddRun, lastCommunityAverages }: Che
     <div className="space-y-6">
       {/* Log form */}
       <div className="bg-[#111111] border border-neutral-800 rounded-2xl p-6 space-y-5">
-        <h3 className="font-display text-base font-bold text-white flex items-center gap-2">
-          <PlusCircle className="w-4 h-4 text-rose-400" /> Registrar partida de Chess
-        </h3>
+        <input type="file" ref={fileInputRef} onChange={handleImportCSV} accept=".csv" className="hidden" />
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="font-display text-base font-bold text-white flex items-center gap-2">
+            <PlusCircle className="w-4 h-4 text-rose-400" /> Registrar partida de Chess
+          </h3>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-neutral-800 rounded-lg text-xs text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 transition-all cursor-pointer"
+          >
+            <FileUp className="w-3.5 h-3.5" /> Importar CSV
+          </button>
+        </div>
+        {importMsg && (
+          <div className={`px-3 py-2 rounded-xl border text-xs ${importMsg.ok ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300' : 'bg-rose-500/10 border-rose-500/20 text-rose-300'}`}>
+            {importMsg.text}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div className="space-y-1.5">
