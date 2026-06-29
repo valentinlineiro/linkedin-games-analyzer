@@ -175,7 +175,10 @@ export default function App() {
           />
         )}
         {activeMainTab === 'analysis' && (
-          <AnalysisTabContainer runs={runs} summaries={summaries} />
+          <AnalysisTabContainer
+            runs={runs.filter(r => r.juego !== 'Chess')}
+            summaries={summaries.filter(s => s.juego !== 'Chess')}
+          />
         )}
       </main>
 

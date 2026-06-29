@@ -25,14 +25,14 @@ const gameColors: Record<GameType, { stroke: string; border: string; bg: string;
 };
 
 export default function VolatilityTrendPanel({ runs }: VolatilityTrendPanelProps) {
-  const games: GameType[] = ['Patches', 'Zip', 'Sudoku', 'Queens', 'Chess'];
+  const games: GameType[] = ['Patches', 'Zip', 'Sudoku', 'Queens'];
 
   const [visibleGames, setVisibleGames] = useState<Record<GameType, boolean>>({
     Patches: true,
     Zip: true,
     Sudoku: true,
     Queens: true,
-    Chess: true,
+    Chess: false,
   });
 
   // Calculate weekly volatility data

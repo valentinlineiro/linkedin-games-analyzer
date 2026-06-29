@@ -182,18 +182,13 @@ export default function ChessView({ runs, onAddRun, onImportRuns, lastCommunityA
     const prev = chessRuns[chessRuns.length - 2];
     const delta = prev ? latest.yo - prev.yo : null;
 
-    const trackedTotal = chessRuns.length;
-    const combinedWins  = wins  + CHESS_BASELINE.wins;
-    const combinedTotal = trackedTotal + CHESS_BASELINE.total;
-
     return {
       latest: latest.yo,
       max: Math.max(...elos),
       min: Math.min(...elos),
       avg: Math.round(elos.reduce((a, b) => a + b, 0) / elos.length),
       wins, draws, losses,
-      trackedTotal,
-      combinedWins, combinedTotal,
+      total: chessRuns.length,
       winsAsB, totalAsB: asB.length,
       winsAsN, totalAsN: asN.length,
       delta,
@@ -396,30 +391,20 @@ export default function ChessView({ runs, onAddRun, onImportRuns, lastCommunityA
             {/* W/D/L */}
             <div className="bg-[#111111] border border-neutral-800 rounded-2xl p-4 space-y-3">
               <p className="text-[10px] text-neutral-500 uppercase tracking-wider">
-                Resultados ({stats.combinedTotal.toLocaleString('es-ES')} partidas)
+                Resultados ({stats.total.toLocaleString('es-ES')} partidas)
               </p>
               <div className="flex items-center gap-3 text-sm font-bold font-mono">
-                <span className="text-emerald-400">{stats.combinedWins.toLocaleString('es-ES')}V</span>
-                {stats.trackedTotal > 0 && (
-                  <>
-                    <span className="text-neutral-500">{stats.draws}T</span>
-                    <span className="text-rose-400">{stats.losses}D</span>
-                  </>
-                )}
+                <span className="text-emerald-400">{stats.wins.toLocaleString('es-ES')}V</span>
+                <span className="text-neutral-500">{stats.draws}T</span>
+                <span className="text-rose-400">{stats.losses}D</span>
               </div>
-              {/* Bar — tracked games only for T/D breakdown */}
-              {stats.trackedTotal > 0 && (
-                <div className="flex h-2 rounded-full overflow-hidden gap-px">
-                  {stats.wins > 0 && <div className="bg-emerald-500" style={{ flex: stats.wins }} />}
-                  {stats.draws > 0 && <div className="bg-neutral-600" style={{ flex: stats.draws }} />}
-                  {stats.losses > 0 && <div className="bg-rose-500" style={{ flex: stats.losses }} />}
-                </div>
-              )}
+              <div className="flex h-2 rounded-full overflow-hidden gap-px">
+                {stats.wins > 0 && <div className="bg-emerald-500" style={{ flex: stats.wins }} />}
+                {stats.draws > 0 && <div className="bg-neutral-600" style={{ flex: stats.draws }} />}
+                {stats.losses > 0 && <div className="bg-rose-500" style={{ flex: stats.losses }} />}
+              </div>
               <p className="text-[10px] text-neutral-500">
-                {Math.round((stats.combinedWins / stats.combinedTotal) * 100)}% victorias globales
-              </p>
-              <p className="text-[10px] text-neutral-700">
-                incluye {CHESS_BASELINE.total.toLocaleString('es-ES')} partidas previas al tracker
+                {Math.round((stats.wins / stats.total) * 100)}% victorias · {Math.round((stats.draws / stats.total) * 100)}% tablas
               </p>
             </div>
 
@@ -486,9 +471,20 @@ export default function ChessView({ runs, onAddRun, onImportRuns, lastCommunityA
       )}
 
       {!stats && (
-        <div className="bg-[#111111] border border-neutral-800 rounded-2xl p-8 text-center space-y-2">
-          <p className="text-neutral-400 text-sm">Sin partidas de Chess registradas</p>
-          <p className="text-neutral-600 text-xs">Registra tu primera partida arriba para ver estadísticas.</p>
+        <div className="bg-[#111111] border border-neutral-800 rounded-2xl p-6 space-y-3">
+          <p className="text-[10px] text-neutral-500 uppercase tracking-wider">Historial previo al tracker</p>
+          <div className="flex items-center gap-3 text-sm font-bold font-mono">
+            <span className="text-emerald-400">{CHESS_BASELINE.wins.toLocaleString('es-ES')}V</span>
+            <span className="text-neutral-500">{(CHESS_BASELINE.total - CHESS_BASELINE.wins).toLocaleString('es-ES')} no victorias</span>
+          </div>
+          <div className="flex h-2 rounded-full overflow-hidden gap-px">
+            <div className="bg-emerald-500" style={{ flex: CHESS_BASELINE.wins }} />
+            <div className="bg-neutral-700" style={{ flex: CHESS_BASELINE.total - CHESS_BASELINE.wins }} />
+          </div>
+          <p className="text-[10px] text-neutral-500">
+            {Math.round((CHESS_BASELINE.wins / CHESS_BASELINE.total) * 100)}% victorias · {CHESS_BASELINE.total.toLocaleString('es-ES')} partidas totales
+          </p>
+          <p className="text-[10px] text-neutral-700">Importa tu CSV o registra una partida para ver el historial completo.</p>
         </div>
       )}
     </div>
