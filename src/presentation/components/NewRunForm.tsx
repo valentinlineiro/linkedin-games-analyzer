@@ -7,7 +7,6 @@ interface NewRunFormProps {
   onAddRuns: (runs: Omit<RawRun, 'id' | 'ahorro' | 'contexto'>[]) => Promise<void>;
   recordTimes: Record<GameType, number>;
   lastCommunityAverages: Record<GameType, number>;
-  isLiveMode?: boolean;
 }
 
 // Parser helper to extract game type and time (MM:SS or SS) from LinkedIn timer copy
@@ -79,7 +78,7 @@ function parseLinkedInShareText(text: string, lastCommunityAverages: Record<Game
   return { juego, yo, media };
 }
 
-export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommunityAverages, isLiveMode }: NewRunFormProps) {
+export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommunityAverages }: NewRunFormProps) {
   const [activeTab, setActiveTab] = useState<'pasted' | 'manual'>('pasted');
   const [pastedText, setPastedText] = useState('');
   
@@ -114,15 +113,7 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
     type: 'success' | 'warning' | 'info';
   } | null>(null);
 
-  // Pre-fill manual community averages from props when they load/change
-  useEffect(() => {
-    setManualMedias((prev) => ({
-      Patches: prev.Patches || (lastCommunityAverages.Patches ? lastCommunityAverages.Patches.toString() : ''),
-      Zip: prev.Zip || (lastCommunityAverages.Zip ? lastCommunityAverages.Zip.toString() : ''),
-      Sudoku: prev.Sudoku || (lastCommunityAverages.Sudoku ? lastCommunityAverages.Sudoku.toString() : ''),
-      Queens: prev.Queens || (lastCommunityAverages.Queens ? lastCommunityAverages.Queens.toString() : ''),
-    }));
-  }, [lastCommunityAverages]);
+
 
   // Monitor text paste to extract values in real-time
   useEffect(() => {
@@ -215,15 +206,15 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
       parsedRuns.push({ game: g, yo: playerTime, media: communityAverage });
     }
 
-    const runsToAdd = parsedRuns.map((r) => ({
-      timestamp: new Date(fecha).toISOString(),
-      juego: r.game,
-      yo: r.yo,
-      media: r.media,
-      nota: nota.trim() || undefined
-    }));
-
     try {
+      const runsToAdd = parsedRuns.map((r) => ({
+        timestamp: new Date(fecha).toISOString(),
+        juego: r.game,
+        yo: r.yo,
+        media: r.media,
+        nota: nota.trim() || undefined
+      }));
+
       await onAddRuns(runsToAdd);
 
       // Trigger consolidated toast notification

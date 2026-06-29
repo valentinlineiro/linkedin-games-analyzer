@@ -90,7 +90,6 @@ export default function App() {
               onAddRuns={onImportRuns}
               recordTimes={recordTimes} 
               lastCommunityAverages={lastCommunityAverages} 
-              isLiveMode={!!activeSpreadsheet} 
             />
           </div>
         </section>

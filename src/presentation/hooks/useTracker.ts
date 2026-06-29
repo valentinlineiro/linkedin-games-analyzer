@@ -275,7 +275,6 @@ export function useTracker() {
         setRuns(currentRunsHistory);
       }
     } catch (err: any) {
-      alert(`Error al importar partidas: ${err.message}`);
       throw err;
     } finally {
       setIsSyncingLive(false);
