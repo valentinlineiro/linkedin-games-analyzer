@@ -420,7 +420,7 @@ export default function TemporalAnalysisPanel({ runs }: TemporalAnalysisPanelPro
           <div className="h-64 w-full" id="scatter-chart-container">
             {scatterData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <ScatterChart margin={{ top: 10, right: 10, left: -25, bottom: 5 }}>
+                <ScatterChart margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#222" />
                   <XAxis 
                     type="number" 
@@ -477,6 +477,10 @@ export default function TemporalAnalysisPanel({ runs }: TemporalAnalysisPanelPro
                 <span>Anomalía</span>
               </div>
             )}
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-[#f43f5e]" />
+              <span>Cansancio</span>
+            </div>
           </div>
         </div>
 
@@ -494,7 +498,7 @@ export default function TemporalAnalysisPanel({ runs }: TemporalAnalysisPanelPro
           <div className="h-64 w-full" id="bar-chart-container">
             {blockData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={blockData} margin={{ top: 10, right: 10, left: -25, bottom: 5 }}>
+                <BarChart data={blockData} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#222" />
                   <XAxis 
                     dataKey="block" 
