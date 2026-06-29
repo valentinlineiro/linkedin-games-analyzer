@@ -342,26 +342,9 @@ export default function GoogleSheetsSyncPanel({
 
   return (
     <div className="bg-[#111111] border border-neutral-800 rounded-2xl p-6 space-y-6" id="cloud-sync-panel">
-      {/* Header */}
-      <div className="flex justify-between items-start gap-4">
-        <div>
-          <h3 className="font-display text-lg font-bold text-white flex items-center gap-2">
-            <Cloud className="w-5 h-5 text-emerald-400" /> Sincronización en la Nube
-          </h3>
-          <p className="text-xs text-neutral-500">
-            Guarda, recupera y centraliza tus estadísticas y tiempos de partidas de LinkedIn de forma rápida y segura en la base de datos Firestore.
-          </p>
-        </div>
-        <div className="shrink-0">
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider ${
-            user 
-              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-              : 'bg-neutral-800 text-neutral-400 border border-neutral-700'
-          }`}>
-            {user ? '● Nube Activa' : '○ Modo Local'}
-          </span>
-        </div>
-      </div>
+      <h3 className="font-display text-base font-bold text-white flex items-center gap-2">
+        <Cloud className="w-4 h-4 text-emerald-400" /> Nube y datos
+      </h3>
 
       {/* Error & Success Messages */}
       {error && (
@@ -389,44 +372,19 @@ export default function GoogleSheetsSyncPanel({
       {/* Main card */}
       {!user ? (
         <div className="space-y-4">
-          <div className="bg-[#161616] border border-neutral-800 rounded-xl p-5 text-center space-y-4" id="cloud-login-card">
-            <div className="max-w-md mx-auto space-y-2">
-              <h4 className="text-sm font-semibold text-white">Sincroniza tus registros en Firestore</h4>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Inicia sesión de forma segura con Google para habilitar el guardado automático. Tus registros se sincronizarán en la nube para que puedas acceder a ellos desde cualquier dispositivo.
-              </p>
-            </div>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
             <button
               onClick={handleSignIn}
               disabled={isBusy}
               className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-black font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer transition-all active:scale-95"
             >
-              <Database className="w-4 h-4" /> Iniciar Sesión con Google
+              <Database className="w-4 h-4" /> Conectar con Google
             </button>
-          </div>
-
-          {/* Local tools accessible offline */}
-          <div className="border border-neutral-800 bg-neutral-900/50 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs">
-            <div className="space-y-1 text-center sm:text-left">
-              <p className="font-semibold text-neutral-300 flex items-center gap-1.5 justify-center sm:justify-start">
-                <Shield className="w-3.5 h-3.5 text-neutral-500" /> Herramientas de Respaldo Local
-              </p>
-              <p className="text-[10px] text-neutral-500">
-                Puedes respaldar o importar tus datos mediante archivos CSV de Excel en cualquier momento.
-              </p>
-            </div>
-            <div className="flex gap-2 w-full sm:w-auto justify-center">
-              <button
-                onClick={triggerFileInput}
-                disabled={isBusy}
-                className="flex items-center gap-1 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-neutral-750 rounded-lg font-medium transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
-              >
+            <div className="flex gap-2">
+              <button onClick={triggerFileInput} disabled={isBusy} className="flex items-center gap-1 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-neutral-700 rounded-lg text-xs font-medium transition-all active:scale-95 disabled:opacity-50 cursor-pointer">
                 <FileUp className="w-3.5 h-3.5" /> Importar CSV
               </button>
-              <button
-                onClick={handleExportCSV}
-                className="flex items-center gap-1 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-neutral-750 rounded-lg font-medium transition-all active:scale-95 cursor-pointer"
-              >
+              <button onClick={handleExportCSV} className="flex items-center gap-1 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-neutral-700 rounded-lg text-xs font-medium transition-all active:scale-95 cursor-pointer">
                 <FileDown className="w-3.5 h-3.5" /> Exportar CSV
               </button>
             </div>
@@ -463,62 +421,24 @@ export default function GoogleSheetsSyncPanel({
 
           {/* Sync controls */}
           <div className="border border-emerald-500/20 bg-emerald-500/5 rounded-xl p-4 space-y-4" id="active-cloud-controls">
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span className="text-xs font-semibold text-white">
-                  Sincronización en Tiempo Real Activa
-                </span>
-              </div>
-              <p className="text-[10px] text-neutral-400">
-                Las partidas nuevas se registrarán automáticamente en tu cuenta Firestore. Tienes <strong>{runs.length}</strong> partidas cargadas en este panel.
-              </p>
+            <div className="flex items-center justify-between text-xs">
+              <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
+                <Clock className="w-3.5 h-3.5" /> Sincronización activa · {runs.length} partidas
+              </span>
             </div>
 
-            {/* Action Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 pt-1">
-              <button
-                onClick={handlePull}
-                disabled={isBusy}
-                className="bg-neutral-900 hover:bg-neutral-800 disabled:opacity-50 border border-neutral-800 rounded-xl p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-all cursor-pointer"
-                title="Baja las partidas guardadas en tu Firestore"
-              >
-                <DownloadCloud className="w-4 h-4 text-emerald-400" />
-                <span className="text-[10px] font-bold text-white">Descargar de Nube</span>
-                <span className="text-[8px] text-neutral-500">Recargar desde base de datos</span>
+            <div className="flex flex-wrap gap-2">
+              <button onClick={handlePull} disabled={isBusy} className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 disabled:opacity-50 border border-neutral-800 rounded-lg text-xs font-medium text-neutral-300 transition-all cursor-pointer">
+                <DownloadCloud className="w-3.5 h-3.5 text-emerald-400" /> Descargar
               </button>
-
-              <button
-                onClick={handlePush}
-                disabled={isBusy || runs.length === 0}
-                className="bg-neutral-900 hover:bg-neutral-800 disabled:opacity-50 border border-neutral-800 rounded-xl p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-all cursor-pointer"
-                title="Sube y mezcla tus partidas locales activas en la nube"
-              >
-                <UploadCloud className="w-4 h-4 text-emerald-400" />
-                <span className="text-[10px] font-bold text-white">Respaldar Historial</span>
-                <span className="text-[8px] text-neutral-500">Combinar local con nube</span>
+              <button onClick={handlePush} disabled={isBusy || runs.length === 0} className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 disabled:opacity-50 border border-neutral-800 rounded-lg text-xs font-medium text-neutral-300 transition-all cursor-pointer">
+                <UploadCloud className="w-3.5 h-3.5 text-emerald-400" /> Subir
               </button>
-
-              <button
-                onClick={triggerFileInput}
-                disabled={isBusy}
-                className="bg-neutral-900 hover:bg-neutral-800 disabled:opacity-50 border border-neutral-800 rounded-xl p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-all cursor-pointer"
-                title="Importar partidas desde una hoja de cálculo guardada en CSV"
-              >
-                <FileUp className="w-4 h-4 text-emerald-400" />
-                <span className="text-[10px] font-bold text-white">Importar CSV</span>
-                <span className="text-[8px] text-neutral-500">Subir archivo de excel (.csv)</span>
+              <button onClick={triggerFileInput} disabled={isBusy} className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 disabled:opacity-50 border border-neutral-800 rounded-lg text-xs font-medium text-neutral-300 transition-all cursor-pointer">
+                <FileUp className="w-3.5 h-3.5 text-emerald-400" /> Importar CSV
               </button>
-
-              <button
-                onClick={handleExportCSV}
-                disabled={runs.length === 0}
-                className="bg-neutral-900 hover:bg-neutral-800 disabled:opacity-50 border border-neutral-800 rounded-xl p-3 flex flex-col items-center justify-center text-center gap-1.5 transition-all cursor-pointer"
-                title="Descargar todas tus partidas en formato CSV de excel"
-              >
-                <FileDown className="w-4 h-4 text-emerald-400" />
-                <span className="text-[10px] font-bold text-white">Exportar CSV</span>
-                <span className="text-[8px] text-neutral-500">Bajar archivo de excel (.csv)</span>
+              <button onClick={handleExportCSV} disabled={runs.length === 0} className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 disabled:opacity-50 border border-neutral-800 rounded-lg text-xs font-medium text-neutral-300 transition-all cursor-pointer">
+                <FileDown className="w-3.5 h-3.5 text-emerald-400" /> Exportar CSV
               </button>
             </div>
           </div>

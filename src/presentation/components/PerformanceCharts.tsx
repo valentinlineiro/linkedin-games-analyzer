@@ -189,16 +189,6 @@ export default function PerformanceCharts({ runs }: PerformanceChartsProps) {
             />
             <Tooltip content={<CustomTooltip />} />
             <Line
-              name="Media Comunidad"
-              type="monotone"
-              dataKey="mediaComunidad"
-              stroke="#404040"
-              strokeWidth={1.5}
-              strokeDasharray="4 4"
-              dot={false}
-              activeDot={false}
-            />
-            <Line
               name="Media 7d"
               type="monotone"
               dataKey="mediaSemana"

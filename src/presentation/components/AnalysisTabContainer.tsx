@@ -1,26 +1,22 @@
 import React, { useState } from 'react';
 import { RawRun, GameSummary } from '../../domain/types';
-import { Calendar, Clock, Activity, BarChart2 } from 'lucide-react';
+import { Calendar, Activity } from 'lucide-react';
 import HeatmapPanel from './HeatmapPanel';
-import TemporalAnalysisPanel from './TemporalAnalysisPanel';
 import VolatilityTrendPanel from './VolatilityTrendPanel';
-import CrossGameCorrelationPanel from './CrossGameCorrelationPanel';
 
 interface AnalysisTabContainerProps {
   runs: RawRun[];
   summaries: GameSummary[];
 }
 
-type SubTabType = 'heatmap' | 'temporal' | 'volatility' | 'correlation';
+type SubTabType = 'heatmap' | 'volatility';
 
 export default function AnalysisTabContainer({ runs, summaries }: AnalysisTabContainerProps) {
   const [activeTab, setActiveTab] = useState<SubTabType>('heatmap');
 
   const subTabs = [
-    { id: 'heatmap', label: 'Mapa de Calor', icon: Calendar },
-    { id: 'temporal', label: 'Rendimiento por Hora', icon: Clock },
-    { id: 'volatility', label: 'Tendencia de Volatilidad', icon: Activity },
-    { id: 'correlation', label: 'Correlación Cruzada', icon: BarChart2 },
+    { id: 'heatmap', label: 'Actividad', icon: Calendar },
+    { id: 'volatility', label: 'Volatilidad', icon: Activity },
   ] as const;
 
   return (
@@ -49,9 +45,7 @@ export default function AnalysisTabContainer({ runs, summaries }: AnalysisTabCon
       {/* Content area */}
       <div className="bg-[#111111] border border-neutral-800 rounded-3xl p-6 min-h-[400px]">
         {activeTab === 'heatmap' && <HeatmapPanel runs={runs} />}
-        {activeTab === 'temporal' && <TemporalAnalysisPanel runs={runs} />}
         {activeTab === 'volatility' && <VolatilityTrendPanel runs={runs} />}
-        {activeTab === 'correlation' && <CrossGameCorrelationPanel runs={runs} />}
       </div>
     </div>
   );

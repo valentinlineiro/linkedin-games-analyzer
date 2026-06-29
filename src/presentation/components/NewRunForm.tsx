@@ -388,42 +388,30 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
 
           <div className="border-t border-neutral-800/80 my-3"></div>
 
-          {/* Grid of 4 games */}
-          <div className="space-y-3.5">
+          {/* One row per game */}
+          <div className="space-y-2">
+            <div className="grid grid-cols-[80px_1fr_1fr] gap-2 text-[10px] text-neutral-500 uppercase tracking-wider px-1">
+              <span>Juego</span><span>Tu tiempo (s)</span><span>Media (s)</span>
+            </div>
             {(['Patches', 'Zip', 'Sudoku', 'Queens'] as GameType[]).map((gameName) => (
-              <div key={gameName} className="p-3 bg-[#161616] border border-neutral-800/60 rounded-xl space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-white uppercase tracking-wider">{gameName}</span>
-                  {recordTimes[gameName] > 0 && (
-                    <span className="text-[10px] text-neutral-500 font-mono">
-                      Récord: {recordTimes[gameName]}s
-                    </span>
-                  )}
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="block text-[10px] text-neutral-400 font-medium uppercase tracking-wider">Tu Tiempo (s)</label>
-                    <input
-                      type="text"
-                      placeholder="Ej: 25.4"
-                      value={manualTimes[gameName]}
-                      onChange={(e) => setManualTimes(prev => ({ ...prev, [gameName]: e.target.value }))}
-                      className="w-full px-3 py-1.5 border border-neutral-800 rounded-lg bg-[#1e1e1e] text-neutral-200 focus:border-neutral-700 focus:outline-none transition-all font-mono"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="block text-[10px] text-neutral-400 font-medium uppercase tracking-wider">Media Comunidad (s)</label>
-                    <input
-                      type="text"
-                      placeholder="Ej: 45.7"
-                      value={manualMedias[gameName]}
-                      onChange={(e) => setManualMedias(prev => ({ ...prev, [gameName]: e.target.value }))}
-                      className="w-full px-3 py-1.5 border border-neutral-800 rounded-lg bg-[#1e1e1e] text-neutral-200 focus:border-neutral-700 focus:outline-none transition-all font-mono"
-                    />
-                  </div>
-                </div>
+              <div key={gameName} className="grid grid-cols-[80px_1fr_1fr] gap-2 items-center">
+                <span className="text-xs font-semibold text-neutral-300">{gameName}</span>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="—"
+                  value={manualTimes[gameName]}
+                  onChange={(e) => setManualTimes(prev => ({ ...prev, [gameName]: e.target.value }))}
+                  className="px-3 py-2 border border-neutral-800 rounded-lg bg-[#1a1a1a] text-neutral-200 focus:border-neutral-700 focus:outline-none text-xs font-mono w-full"
+                />
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="—"
+                  value={manualMedias[gameName]}
+                  onChange={(e) => setManualMedias(prev => ({ ...prev, [gameName]: e.target.value }))}
+                  className="px-3 py-2 border border-neutral-800 rounded-lg bg-[#1a1a1a] text-neutral-200 focus:border-neutral-700 focus:outline-none text-xs font-mono w-full"
+                />
               </div>
             ))}
           </div>

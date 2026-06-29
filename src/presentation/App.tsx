@@ -4,9 +4,8 @@ import DashboardMetrics from './components/DashboardMetrics';
 import PerformanceCharts from './components/PerformanceCharts';
 import NewRunForm from './components/NewRunForm';
 import GoogleSheetsSyncPanel from './components/GoogleSheetsSyncPanel';
-import AnomalyDetector from './components/AnomalyDetector';
 import AnalysisTabContainer from './components/AnalysisTabContainer';
-import { RefreshCw, Layers, Cloud, CloudOff, Settings } from 'lucide-react';
+import { Layers, Cloud, CloudOff, Settings } from 'lucide-react';
 
 export default function App() {
   const [activeMainTab, setActiveMainTab] = React.useState<'dashboard' | 'analysis'>('dashboard');
@@ -33,8 +32,8 @@ export default function App() {
     onImportRuns,
   } = useTracker();
 
-  const [confirmingReset, setConfirmingReset] = React.useState(false);
   const [showSettings, setShowSettings] = React.useState(false);
+  const [confirmingReset, setConfirmingReset] = React.useState(false);
 
   const handleResetClick = () => {
     if (confirmingReset) {
@@ -116,19 +115,6 @@ export default function App() {
             >
               <Settings className="w-4 h-4" />
             </button>
-
-            <button
-              onClick={handleResetClick}
-              className={`px-3 py-1.5 border rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                confirmingReset
-                  ? 'border-rose-500/50 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20'
-                  : 'border-neutral-800 text-neutral-400 hover:bg-neutral-800 hover:text-white'
-              }`}
-              title={confirmingReset ? 'Haz clic de nuevo para confirmar' : 'Limpiar historial de partidas'}
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              {confirmingReset ? '¿Confirmar?' : 'Limpiar'}
-            </button>
           </div>
         </div>
       </header>
@@ -136,7 +122,7 @@ export default function App() {
       {/* Settings panel (collapsed by default) */}
       {showSettings && (
         <div className="border-b border-neutral-800 bg-[#0d0d0d]">
-          <div className="max-w-4xl mx-auto p-6">
+          <div className="max-w-4xl mx-auto p-6 space-y-4">
             <GoogleSheetsSyncPanel
               runs={runs}
               user={user}
@@ -152,6 +138,18 @@ export default function App() {
               onPushToSheet={onPushToSheet}
               onImportRuns={onImportRuns}
             />
+            <div className="border-t border-neutral-800 pt-4">
+              <button
+                onClick={handleResetClick}
+                className={`px-3 py-1.5 border rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  confirmingReset
+                    ? 'border-rose-500/50 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20'
+                    : 'border-neutral-700 text-neutral-500 hover:bg-neutral-800 hover:text-white'
+                }`}
+              >
+                {confirmingReset ? '¿Confirmar? Haz clic de nuevo' : 'Limpiar historial'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -172,11 +170,6 @@ export default function App() {
               <>
                 <DashboardMetrics summaries={summaries} />
                 <PerformanceCharts runs={sortedRuns} />
-                <AnomalyDetector
-                  runs={sortedRuns}
-                  summaries={summaries}
-                  onDeleteRun={onDeleteRun}
-                />
               </>
             )}
           </>
