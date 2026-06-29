@@ -9,7 +9,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts';
-import { Activity, Info, HelpCircle, AlertCircle } from 'lucide-react';
+import { Activity, HelpCircle, AlertCircle } from 'lucide-react';
 import { calculateWeeklyVolatility } from '../../domain/metrics';
 
 interface VolatilityTrendPanelProps {
@@ -81,7 +81,7 @@ export default function VolatilityTrendPanel({ runs }: VolatilityTrendPanelProps
         <div>
           <h3 className="font-display font-bold text-lg text-white">Tendencia de Volatilidad</h3>
           <p className="text-xs text-neutral-500">
-            Evolución del Coefficiente de Variación (CV) semanal. Una pendiente descendente indica mayor consistencia.
+            Evolución del Coeficiente de Variación (CV) semanal. Una pendiente descendente indica mayor consistencia.
           </p>
         </div>
 
