@@ -9,7 +9,7 @@ import ChessView from './components/ChessView';
 import { Layers, Cloud, CloudOff, Settings } from 'lucide-react';
 
 export default function App() {
-  const [activeMainTab, setActiveMainTab] = React.useState<'linkedin' | 'chess' | 'analysis'>('linkedin');
+  const [activeMainTab, setActiveMainTab] = React.useState<'linkedin' | 'chess'>('linkedin');
   const {
     runs,
     sortedRuns,
@@ -57,7 +57,7 @@ export default function App() {
           <div className="flex items-center gap-2">
             {/* Tab Selector */}
             <div className="flex bg-neutral-950 border border-neutral-800 p-1 rounded-xl text-xs gap-1" id="main-tab-selector">
-              {(['linkedin', 'chess', 'analysis'] as const).map(tab => (
+              {(['linkedin', 'chess'] as const).map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveMainTab(tab)}
@@ -67,7 +67,7 @@ export default function App() {
                       : 'text-neutral-400 hover:text-white'
                   }`}
                 >
-                  {tab === 'linkedin' ? 'LinkedIn' : tab === 'chess' ? 'Chess' : 'Análisis'}
+                  {tab === 'linkedin' ? 'LinkedIn' : 'Chess'}
                 </button>
               ))}
             </div>
@@ -173,7 +173,11 @@ export default function App() {
             {hasData ? (
               <>
                 <DashboardMetrics summaries={summaries.filter(s => s.juego !== 'Chess')} />
-                <PerformanceCharts runs={sortedRuns} />
+                <PerformanceCharts runs={sortedRuns.filter(r => r.juego !== 'Chess')} />
+                <AnalysisTabContainer
+                  runs={runs.filter(r => r.juego !== 'Chess')}
+                  summaries={summaries.filter(s => s.juego !== 'Chess')}
+                />
               </>
             ) : (
               <p className="text-center text-xs text-neutral-600 py-4">
@@ -188,12 +192,6 @@ export default function App() {
             onAddRun={onAddRun}
             onImportRuns={onImportRuns}
             lastCommunityAverages={lastCommunityAverages}
-          />
-        )}
-        {activeMainTab === 'analysis' && (
-          <AnalysisTabContainer
-            runs={runs}
-            summaries={summaries}
           />
         )}
       </main>
