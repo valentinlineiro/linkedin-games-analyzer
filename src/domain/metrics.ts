@@ -144,20 +144,25 @@ function getWeekYearKey(date: Date): string {
 }
 
 export function calculatePearsonCorrelation(runs: RawRun[], gameA: GameType, gameB: GameType): number {
-  const dates: Record<string, { a?: number; b?: number }> = {};
+  const dates: Record<string, { a: number[]; b: number[] }> = {};
   
   runs.forEach(r => {
+    if (r.yo === 0) return;
     const date = getLocalDate(r.timestamp);
-    if (!dates[date]) dates[date] = {};
+    if (!dates[date]) {
+      dates[date] = { a: [], b: [] };
+    }
     const ratio = r.media / r.yo;
-    if (r.juego === gameA) dates[date].a = ratio;
-    if (r.juego === gameB) dates[date].b = ratio;
+    if (r.juego === gameA) dates[date].a.push(ratio);
+    if (r.juego === gameB) dates[date].b.push(ratio);
   });
 
   const pairs: { x: number; y: number }[] = [];
   Object.values(dates).forEach(d => {
-    if (d.a !== undefined && d.b !== undefined) {
-      pairs.push({ x: d.a, y: d.b });
+    if (d.a.length > 0 && d.b.length > 0) {
+      const avgA = d.a.reduce((sum, val) => sum + val, 0) / d.a.length;
+      const avgB = d.b.reduce((sum, val) => sum + val, 0) / d.b.length;
+      pairs.push({ x: avgA, y: avgB });
     }
   });
 
@@ -203,6 +208,10 @@ export function calculateWeeklyVolatility(runs: RawRun[]): { week: string; Patch
         return;
       }
       const mean = times.reduce((s, val) => s + val, 0) / times.length;
+      if (mean === 0) {
+        row[juego] = 0;
+        return;
+      }
       const variance = times.reduce((s, val) => s + Math.pow(val - mean, 2), 0) / times.length;
       const stdDev = Math.sqrt(variance);
       row[juego] = Number((stdDev / mean).toFixed(3)); // Coefficient of Variation
@@ -214,7 +223,7 @@ export function calculateWeeklyVolatility(runs: RawRun[]): { week: string; Patch
 }
 
 export function groupRunsByTimeOfDay(runs: RawRun[], game: GameType): { block: string; avgYo: number; count: number; avgRatio: number; }[] {
-  const filtered = runs.filter(r => r.juego === game && r.contexto !== 'Anomalía');
+  const filtered = runs.filter(r => r.juego === game && r.contexto !== 'Anomalía' && r.yo !== 0);
   const blocks = [
     { name: 'Madrugada (00-06)', min: 0, max: 6, runs: [] as RawRun[] },
     { name: 'Mañana (06-12)', min: 6, max: 12, runs: [] as RawRun[] },
@@ -223,7 +232,7 @@ export function groupRunsByTimeOfDay(runs: RawRun[], game: GameType): { block: s
   ];
 
   filtered.forEach(r => {
-    const hour = new Date(r.timestamp).getUTCHours();
+    const hour = new Date(r.timestamp).getHours();
     const block = blocks.find(b => hour >= b.min && hour < b.max);
     if (block) block.runs.push(r);
   });

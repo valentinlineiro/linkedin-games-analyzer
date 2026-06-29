@@ -4,13 +4,13 @@ import { RawRun } from './types';
 
 const mockRuns: RawRun[] = [
   // Day 1 (Monday, 2026-06-01)
-  { id: '1', timestamp: '2026-06-01T08:30:00Z', juego: 'Patches', yo: 20, media: 40, ahorro: 20, contexto: 'Exploración' },
-  { id: '2', timestamp: '2026-06-01T09:15:00Z', juego: 'Queens', yo: 40, media: 80, ahorro: 40, contexto: 'Exploración' },
+  { id: '1', timestamp: '2026-06-01T08:30:00', juego: 'Patches', yo: 20, media: 40, ahorro: 20, contexto: 'Exploración' },
+  { id: '2', timestamp: '2026-06-01T09:15:00', juego: 'Queens', yo: 40, media: 80, ahorro: 40, contexto: 'Exploración' },
   // Day 2 (Tuesday, 2026-06-02)
-  { id: '3', timestamp: '2026-06-02T10:00:00Z', juego: 'Patches', yo: 30, media: 40, ahorro: 10, contexto: 'Exploración' },
-  { id: '4', timestamp: '2026-06-02T14:20:00Z', juego: 'Queens', yo: 60, media: 80, ahorro: 20, contexto: 'Exploración' },
+  { id: '3', timestamp: '2026-06-02T10:00:00', juego: 'Patches', yo: 30, media: 40, ahorro: 10, contexto: 'Exploración' },
+  { id: '4', timestamp: '2026-06-02T14:20:00', juego: 'Queens', yo: 60, media: 80, ahorro: 20, contexto: 'Exploración' },
   // Day 3 (Wednesday, 2026-06-03)
-  { id: '5', timestamp: '2026-06-03T23:30:00Z', juego: 'Patches', yo: 25, media: 50, ahorro: 25, contexto: 'Exploración' },
+  { id: '5', timestamp: '2026-06-03T23:30:00', juego: 'Patches', yo: 25, media: 50, ahorro: 25, contexto: 'Exploración' },
 ];
 
 describe('Análisis Estadístico Avanzado', () => {
@@ -31,13 +31,36 @@ describe('Análisis Estadístico Avanzado', () => {
 
     it('devuelve 0 si la desviación estándar es 0 (datos constantes)', () => {
       const constantRuns: RawRun[] = [
-        { id: '1', timestamp: '2026-06-01T08:30:00Z', juego: 'Patches', yo: 20, media: 40, ahorro: 20, contexto: 'Exploración' },
-        { id: '2', timestamp: '2026-06-01T09:15:00Z', juego: 'Queens', yo: 40, media: 80, ahorro: 40, contexto: 'Exploración' },
-        { id: '3', timestamp: '2026-06-02T10:00:00Z', juego: 'Patches', yo: 20, media: 40, ahorro: 20, contexto: 'Exploración' },
-        { id: '4', timestamp: '2026-06-02T14:20:00Z', juego: 'Queens', yo: 40, media: 80, ahorro: 40, contexto: 'Exploración' },
+        { id: '1', timestamp: '2026-06-01T08:30:00', juego: 'Patches', yo: 20, media: 40, ahorro: 20, contexto: 'Exploración' },
+        { id: '2', timestamp: '2026-06-01T09:15:00', juego: 'Queens', yo: 40, media: 80, ahorro: 40, contexto: 'Exploración' },
+        { id: '3', timestamp: '2026-06-02T10:00:00', juego: 'Patches', yo: 20, media: 40, ahorro: 20, contexto: 'Exploración' },
+        { id: '4', timestamp: '2026-06-02T14:20:00', juego: 'Queens', yo: 40, media: 80, ahorro: 40, contexto: 'Exploración' },
       ];
       const corr = calculatePearsonCorrelation(constantRuns, 'Patches', 'Queens');
       expect(corr).toBe(0);
+    });
+
+    it('ignora partidas donde yo === 0', () => {
+      const runsWithZero: RawRun[] = [
+        { id: '1', timestamp: '2026-06-01T08:30:00', juego: 'Patches', yo: 0, media: 40, ahorro: 40, contexto: 'Exploración' },
+        { id: '2', timestamp: '2026-06-01T09:15:00', juego: 'Queens', yo: 40, media: 80, ahorro: 40, contexto: 'Exploración' },
+        { id: '3', timestamp: '2026-06-02T10:00:00', juego: 'Patches', yo: 30, media: 40, ahorro: 10, contexto: 'Exploración' },
+        { id: '4', timestamp: '2026-06-02T14:20:00', juego: 'Queens', yo: 60, media: 80, ahorro: 20, contexto: 'Exploración' },
+      ];
+      const corr = calculatePearsonCorrelation(runsWithZero, 'Patches', 'Queens');
+      expect(corr).toBe(0);
+    });
+
+    it('promedia los ratios de rendimiento si hay múltiples partidas el mismo día para el mismo juego', () => {
+      const runsWithMultiple: RawRun[] = [
+        { id: '1', timestamp: '2026-06-01T08:30:00', juego: 'Patches', yo: 20, media: 40, ahorro: 20, contexto: 'Exploración' },
+        { id: '2', timestamp: '2026-06-01T12:00:00', juego: 'Patches', yo: 40, media: 40, ahorro: 0, contexto: 'Exploración' },
+        { id: '3', timestamp: '2026-06-01T09:15:00', juego: 'Queens', yo: 40, media: 80, ahorro: 40, contexto: 'Exploración' },
+        { id: '4', timestamp: '2026-06-02T10:00:00', juego: 'Patches', yo: 30, media: 40, ahorro: 10, contexto: 'Exploración' },
+        { id: '5', timestamp: '2026-06-02T14:20:00', juego: 'Queens', yo: 60, media: 80, ahorro: 20, contexto: 'Exploración' },
+      ];
+      const corr = calculatePearsonCorrelation(runsWithMultiple, 'Patches', 'Queens');
+      expect(corr).toBeCloseTo(1.0, 2);
     });
   });
 
@@ -67,9 +90,18 @@ describe('Análisis Estadístico Avanzado', () => {
 
     it('devuelve 0 para juegos con solo 1 partida en la semana', () => {
       const singleRun: RawRun[] = [
-        { id: '1', timestamp: '2026-06-01T08:30:00Z', juego: 'Patches', yo: 20, media: 40, ahorro: 20, contexto: 'Exploración' }
+        { id: '1', timestamp: '2026-06-01T08:30:00', juego: 'Patches', yo: 20, media: 40, ahorro: 20, contexto: 'Exploración' }
       ];
       const vol = calculateWeeklyVolatility(singleRun);
+      expect(vol[0].Patches).toBe(0);
+    });
+
+    it('devuelve 0 si el promedio de tiempos es 0', () => {
+      const zeroRuns: RawRun[] = [
+        { id: '1', timestamp: '2026-06-01T08:30:00', juego: 'Patches', yo: 0, media: 40, ahorro: 40, contexto: 'Exploración' },
+        { id: '2', timestamp: '2026-06-01T10:00:00', juego: 'Patches', yo: 0, media: 40, ahorro: 40, contexto: 'Exploración' },
+      ];
+      const vol = calculateWeeklyVolatility(zeroRuns);
       expect(vol[0].Patches).toBe(0);
     });
   });
@@ -78,16 +110,16 @@ describe('Análisis Estadístico Avanzado', () => {
     it('agrupa partidas por bloque horario y calcula promedios omitiendo anomalías', () => {
       const mixedRuns: RawRun[] = [
         // Mañana (06-12)
-        { id: '1', timestamp: '2026-06-01T08:30:00Z', juego: 'Patches', yo: 20, media: 40, ahorro: 20, contexto: 'Exploración' },
-        { id: '2', timestamp: '2026-06-01T10:00:00Z', juego: 'Patches', yo: 30, media: 40, ahorro: 10, contexto: 'Exploración' },
+        { id: '1', timestamp: '2026-06-01T08:30:00', juego: 'Patches', yo: 20, media: 40, ahorro: 20, contexto: 'Exploración' },
+        { id: '2', timestamp: '2026-06-01T10:00:00', juego: 'Patches', yo: 30, media: 40, ahorro: 10, contexto: 'Exploración' },
         // Tarde (12-18)
-        { id: '3', timestamp: '2026-06-01T14:00:00Z', juego: 'Patches', yo: 25, media: 50, ahorro: 25, contexto: 'Exploración' },
+        { id: '3', timestamp: '2026-06-01T14:00:00', juego: 'Patches', yo: 25, media: 50, ahorro: 25, contexto: 'Exploración' },
         // Anomalía - should be ignored
-        { id: '4', timestamp: '2026-06-01T15:00:00Z', juego: 'Patches', yo: 10, media: 40, ahorro: 30, contexto: 'Anomalía' },
+        { id: '4', timestamp: '2026-06-01T15:00:00', juego: 'Patches', yo: 10, media: 40, ahorro: 30, contexto: 'Anomalía' },
         // Noche (18-00)
-        { id: '5', timestamp: '2026-06-01T19:00:00Z', juego: 'Patches', yo: 50, media: 50, ahorro: 0, contexto: 'Exploración' },
+        { id: '5', timestamp: '2026-06-01T19:00:00', juego: 'Patches', yo: 50, media: 50, ahorro: 0, contexto: 'Exploración' },
         // Madrugada (00-06)
-        { id: '6', timestamp: '2026-06-01T03:00:00Z', juego: 'Patches', yo: 40, media: 40, ahorro: 0, contexto: 'Exploración' }
+        { id: '6', timestamp: '2026-06-01T03:00:00', juego: 'Patches', yo: 40, media: 40, ahorro: 0, contexto: 'Exploración' }
       ];
 
       const groups = groupRunsByTimeOfDay(mixedRuns, 'Patches');
@@ -108,6 +140,16 @@ describe('Análisis Estadístico Avanzado', () => {
       // Check Noche (18-00): 1 run (yo: 50, ratio: 50/50 = 1.0)
       const noche = groups.find(g => g.block.startsWith('Noche'));
       expect(noche).toEqual({ block: 'Noche (18-00)', avgYo: 50, count: 1, avgRatio: 1.0 });
+    });
+
+    it('ignora partidas donde yo === 0', () => {
+      const runsWithZero: RawRun[] = [
+        { id: '1', timestamp: '2026-06-01T08:30:00', juego: 'Patches', yo: 0, media: 40, ahorro: 40, contexto: 'Exploración' },
+        { id: '2', timestamp: '2026-06-01T10:00:00', juego: 'Patches', yo: 30, media: 40, ahorro: 10, contexto: 'Exploración' }
+      ];
+      const groups = groupRunsByTimeOfDay(runsWithZero, 'Patches');
+      const manana = groups.find(g => g.block.startsWith('Mañana'));
+      expect(manana).toEqual({ block: 'Mañana (06-12)', avgYo: 30, count: 1, avgRatio: 1.33 });
     });
   });
 });
