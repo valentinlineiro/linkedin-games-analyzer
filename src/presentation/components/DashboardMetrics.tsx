@@ -65,7 +65,9 @@ export default function DashboardMetrics({ summaries }: DashboardMetricsProps) {
             <div className="h-px bg-neutral-800" />
 
             <div className="flex items-center justify-between text-[10px]">
-              <span className="text-neutral-500">Victorias</span>
+              <span className="text-neutral-500">
+                Victorias <span className="text-neutral-700">({summary.totalPartidas})</span>
+              </span>
               <span className={`font-mono font-semibold ${
                 summary.victoriasPct >= 0.7 ? 'text-emerald-400' : summary.victoriasPct >= 0.5 ? 'text-neutral-300' : 'text-rose-400'
               }`}>

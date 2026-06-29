@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { RawRun, GameType } from '../../domain/types';
+import { RawRun, GameType, GAME_CONFIGS } from '../../domain/types';
 import { Calendar, Info } from 'lucide-react';
 import { generateCalendarGrid } from '../../domain/metrics';
 
@@ -172,6 +172,7 @@ export default function HeatmapPanel({ runs }: HeatmapPanelProps) {
             <option value="Zip">Zip</option>
             <option value="Sudoku">Sudoku</option>
             <option value="Queens">Queens</option>
+            <option value="Chess">Chess</option>
           </select>
         </div>
       </div>
@@ -280,8 +281,8 @@ export default function HeatmapPanel({ runs }: HeatmapPanelProps) {
                         </div>
                         
                         <div className="grid grid-cols-2 gap-1 text-[11px] font-mono py-0.5 text-neutral-400">
-                          <div>Yo: <strong className="text-white">{run.yo.toFixed(1)}s</strong></div>
-                          <div>Media: <strong className="text-neutral-300">{run.media.toFixed(1)}s</strong></div>
+                          <div>Yo: <strong className="text-white">{run.yo.toFixed(1)}{GAME_CONFIGS[run.juego].unit}</strong></div>
+                          <div>Media: <strong className="text-neutral-300">{run.media.toFixed(1)}{GAME_CONFIGS[run.juego].unit}</strong></div>
                         </div>
                         
                         <div className="flex justify-between items-center text-[10px] pt-0.5 border-t border-neutral-800/50">

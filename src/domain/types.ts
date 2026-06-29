@@ -60,4 +60,5 @@ export interface GameSummary {
   rendimiento: number; // media / yo
   volatilidad: number; // Coefficient of variation or standard deviation
   deltaSemana: number | null; // avg last 7d minus avg prev 7d (negative = improving)
+  totalPartidas: number;
 }

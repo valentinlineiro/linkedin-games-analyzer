@@ -134,6 +134,7 @@ export default function ChessView({ runs, onAddRun, onImportRuns, lastCommunityA
   const [elo, setElo] = useState('');
   const [target, setTarget] = useState('');
   const [nota, setNota] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
   const [fecha, setFecha] = useState(() => {
     const now = new Date();
     return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
@@ -142,9 +143,10 @@ export default function ChessView({ runs, onAddRun, onImportRuns, lastCommunityA
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const eloVal = parseFloat(elo);
-    if (isNaN(eloVal) || eloVal <= 0) { alert('ELO inválido.'); return; }
-    if (!color) { alert('Selecciona el color (B/N).'); return; }
-    if (!resultado) { alert('Selecciona el resultado (V/T/D).'); return; }
+    if (isNaN(eloVal) || eloVal <= 0) { setFormError('ELO inválido.'); return; }
+    if (!color) { setFormError('Selecciona el color (Blancas/Negras).'); return; }
+    if (!resultado) { setFormError('Selecciona el resultado (V/T/D).'); return; }
+    setFormError(null);
 
     const targetVal = parseFloat(target);
     const media = !isNaN(targetVal) && targetVal > 0 ? targetVal : (lastCommunityAverages['Chess'] || eloVal);
@@ -280,11 +282,11 @@ export default function ChessView({ runs, onAddRun, onImportRuns, lastCommunityA
             <div className="space-y-1.5">
               <label className="block text-neutral-400 font-semibold uppercase tracking-wider">Color</label>
               <div className="flex gap-1">
-                {(['B', 'N'] as const).map(c => (
+                {([['B', 'Blancas'], ['N', 'Negras']] as const).map(([c, label]) => (
                   <button key={c} type="button"
                     onClick={() => setColor(prev => prev === c ? null : c)}
                     className={`${btnBase} ${color === c ? 'bg-rose-500/20 border-rose-500/40 text-rose-300' : btnInactive}`}
-                  >{c}</button>
+                  >{label}</button>
                 ))}
               </div>
             </div>
@@ -293,7 +295,7 @@ export default function ChessView({ runs, onAddRun, onImportRuns, lastCommunityA
             <div className="space-y-1.5">
               <label className="block text-neutral-400 font-semibold uppercase tracking-wider">Resultado</label>
               <div className="flex gap-1">
-                {(['V', 'T', 'D'] as const).map(r => (
+                {([['V', 'Victoria'], ['T', 'Tablas'], ['D', 'Derrota']] as const).map(([r, label]) => (
                   <button key={r} type="button"
                     onClick={() => setResultado(prev => prev === r ? null : r)}
                     className={`${btnBase} ${
@@ -303,7 +305,7 @@ export default function ChessView({ runs, onAddRun, onImportRuns, lastCommunityA
                         : 'bg-rose-500/20 border-rose-500/40 text-rose-300'
                         : btnInactive
                     }`}
-                  >{r}</button>
+                  >{label}</button>
                 ))}
               </div>
             </div>
@@ -346,6 +348,9 @@ export default function ChessView({ runs, onAddRun, onImportRuns, lastCommunityA
             </div>
           </div>
 
+          {formError && (
+            <p className="text-rose-400 text-[11px] bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2">{formError}</p>
+          )}
           <button
             type="submit"
             className="w-full bg-rose-500 hover:bg-rose-400 text-white font-bold py-2.5 rounded-xl active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"

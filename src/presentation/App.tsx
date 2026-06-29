@@ -36,21 +36,7 @@ export default function App() {
   const [showSettings, setShowSettings] = React.useState(false);
   const [confirmingReset, setConfirmingReset] = React.useState(false);
 
-  const handleResetClick = () => {
-    if (confirmingReset) {
-      onResetData();
-      setConfirmingReset(false);
-    } else {
-      setConfirmingReset(true);
-    }
-  };
-
-  React.useEffect(() => {
-    if (confirmingReset) {
-      const timer = setTimeout(() => setConfirmingReset(false), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [confirmingReset]);
+  const handleResetClick = () => setConfirmingReset(true);
 
   const hasData = runs.length > 0;
 
@@ -58,7 +44,7 @@ export default function App() {
     <div className="min-h-screen bg-[#0a0a0a] text-neutral-200 font-sans selection:bg-emerald-500/20" id="app-root-container">
       {/* Header */}
       <header className="bg-[#111111] border-b border-neutral-800 sticky top-0 z-40 px-6 py-4" id="app-header">
-        <div className="max-w-4xl mx-auto flex justify-between items-center gap-4">
+        <div className="max-w-4xl mx-auto flex flex-wrap justify-between items-center gap-2">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-emerald-500 text-black font-bold rounded-xl">
               <Layers className="w-5 h-5" />
@@ -86,15 +72,21 @@ export default function App() {
               ))}
             </div>
 
-            {/* Cloud status indicator */}
+            {/* Cloud status indicator — click to open settings */}
             {activeSpreadsheet ? (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+              <button
+                onClick={() => setShowSettings(s => !s)}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 cursor-pointer hover:bg-emerald-500/20 transition-all"
+              >
                 <Cloud className="w-3.5 h-3.5" /> {isSyncingLive ? 'Guardando…' : 'Nube activa'}
-              </span>
+              </button>
             ) : (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium border bg-neutral-800 text-neutral-500 border-neutral-700">
+              <button
+                onClick={() => setShowSettings(s => !s)}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium border bg-neutral-800 text-neutral-500 border-neutral-700 cursor-pointer hover:bg-neutral-700 hover:text-neutral-300 transition-all"
+              >
                 <CloudOff className="w-3.5 h-3.5" /> Local
-              </span>
+              </button>
             )}
 
             {/* Settings toggle */}
@@ -135,13 +127,33 @@ export default function App() {
             <div className="border-t border-neutral-800 pt-4">
               <button
                 onClick={handleResetClick}
-                className={`px-3 py-1.5 border rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  confirmingReset
-                    ? 'border-rose-500/50 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20'
-                    : 'border-neutral-700 text-neutral-500 hover:bg-neutral-800 hover:text-white'
-                }`}
+                className="px-3 py-1.5 border rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border-neutral-700 text-neutral-500 hover:bg-neutral-800 hover:text-white"
               >
-                {confirmingReset ? '¿Confirmar? Haz clic de nuevo' : 'Limpiar historial'}
+                Limpiar historial
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation modal for reset */}
+      {confirmingReset && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setConfirmingReset(false)}>
+          <div className="bg-[#1a1a1a] border border-neutral-700 rounded-2xl p-6 max-w-sm w-full space-y-4" onClick={e => e.stopPropagation()}>
+            <h4 className="font-bold text-white text-sm">¿Eliminar todo el historial?</h4>
+            <p className="text-xs text-neutral-400">Esta acción es irreversible. Se borrarán todos los registros locales.</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setConfirmingReset(false)}
+                className="flex-1 px-3 py-2 border border-neutral-700 rounded-xl text-xs font-semibold text-neutral-400 hover:bg-neutral-800 hover:text-white transition-all cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => { onResetData(); setConfirmingReset(false); }}
+                className="flex-1 px-3 py-2 bg-rose-500 hover:bg-rose-400 rounded-xl text-xs font-bold text-white transition-all cursor-pointer"
+              >
+                Eliminar
               </button>
             </div>
           </div>
@@ -158,11 +170,15 @@ export default function App() {
               recordTimes={recordTimes}
               lastCommunityAverages={lastCommunityAverages}
             />
-            {hasData && (
+            {hasData ? (
               <>
                 <DashboardMetrics summaries={summaries.filter(s => s.juego !== 'Chess')} />
                 <PerformanceCharts runs={sortedRuns} />
               </>
+            ) : (
+              <p className="text-center text-xs text-neutral-600 py-4">
+                Aquí aparecerán tus estadísticas cuando registres la primera partida.
+              </p>
             )}
           </>
         )}
@@ -176,8 +192,8 @@ export default function App() {
         )}
         {activeMainTab === 'analysis' && (
           <AnalysisTabContainer
-            runs={runs.filter(r => r.juego !== 'Chess')}
-            summaries={summaries.filter(s => s.juego !== 'Chess')}
+            runs={runs}
+            summaries={summaries}
           />
         )}
       </main>

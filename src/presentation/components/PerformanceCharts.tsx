@@ -172,6 +172,11 @@ export default function PerformanceCharts({ runs }: PerformanceChartsProps) {
         </div>
       </div>
 
+      <div className="flex gap-4 text-[10px] text-neutral-500">
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />Tu tiempo</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-400 shrink-0" />Media 7 días</span>
+      </div>
+
       <div className="h-64 sm:h-80 w-full" id="recharts-wrapper">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>

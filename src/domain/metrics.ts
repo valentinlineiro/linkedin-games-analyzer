@@ -46,6 +46,7 @@ export function recalculateMetrics(runs: RawRun[]): { sortedRuns: RawRun[]; summ
         rendimiento: 0,
         volatilidad: 0,
         deltaSemana: null,
+        totalPartidas: 0,
       };
     }
 
@@ -119,6 +120,7 @@ export function recalculateMetrics(runs: RawRun[]): { sortedRuns: RawRun[]; summ
       rendimiento,
       volatilidad,
       deltaSemana,
+      totalPartidas: gameRuns.length,
     };
   });
 

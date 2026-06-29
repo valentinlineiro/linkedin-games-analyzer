@@ -102,6 +102,7 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
     text: string;
     type: 'success' | 'warning' | 'info';
   } | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
 
 
@@ -128,15 +129,15 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
 
   const triggerToast = (playerTime: number, communityAverage: number, selectedGame: GameType) => {
     let toastType: 'success' | 'warning' | 'info' = 'success';
-    let toastText = `Partida de ${selectedGame} registrada con éxito en la base de datos.`;
+    let toastText = `Partida de ${selectedGame} registrada.`;
 
     const currentRecord = recordTimes[selectedGame];
     if (playerTime <= currentRecord && currentRecord > 0) {
       toastType = 'info';
-      toastText = `🏆 ¡BRUTAL! Has batido tu récord en ${selectedGame} (${playerTime}s). Guardado como Máximo.`;
+      toastText = `🏆 ¡Nuevo récord en ${selectedGame}! (${playerTime}s)`;
     } else if (playerTime > communityAverage * 1.3) {
       toastType = 'warning';
-      toastText = `⚠️ Rendimiento atenuado en ${selectedGame} (${playerTime}s). Asignado a: Anomalía/Cansancio.`;
+      toastText = `⚠️ Rendimiento atenuado en ${selectedGame} (${playerTime}s). Clasificado como Anomalía.`;
     }
 
     setNotification({ text: toastText, type: toastType });
@@ -152,9 +153,10 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
 
     const finalMedia = parseFloat(pastedMedia.replace(',', '.'));
     if (isNaN(finalMedia) || finalMedia <= 0) {
-      alert('Por favor, introduce una media de comunidad válida.');
+      setFormError('Introduce una media de comunidad válida.');
       return;
     }
+    setFormError(null);
 
     onAddRun({
       timestamp: new Date().toISOString(),
@@ -188,11 +190,11 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
       const communityAverage = parseFloat(manualMedias[g as keyof typeof manualMedias].replace(',', '.'));
 
       if (isNaN(playerTime) || playerTime <= 0) {
-        alert(`Tiempo inválido para ${g}.`);
+        setFormError(`Tiempo inválido para ${g}.`);
         return;
       }
       if (isNaN(communityAverage) || communityAverage <= 0) {
-        alert(`Media de comunidad inválida para ${g}.`);
+        setFormError(`Media de comunidad inválida para ${g}.`);
         return;
       }
 
@@ -200,9 +202,10 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
     }
 
     if (parsedRuns.length === 0) {
-      alert('Introduce al menos un tiempo.');
+      setFormError('Introduce al menos un tiempo.');
       return;
     }
+    setFormError(null);
 
     try {
       const ts = new Date(fecha).toISOString();
@@ -215,7 +218,7 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
 
       // Trigger consolidated toast notification
       let toastType: 'success' | 'warning' | 'info' = 'success';
-      let toastText = `Las 4 partidas se han registrado con éxito.`;
+      let toastText = `${parsedRuns.length} partida${parsedRuns.length > 1 ? 's' : ''} registrada${parsedRuns.length > 1 ? 's' : ''}.`;
 
       const brokenRecords: string[] = [];
       const anomalies: string[] = [];
@@ -231,13 +234,13 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
 
       if (brokenRecords.length > 0 && anomalies.length > 0) {
         toastType = 'info';
-        toastText = `🏆 ¡BRUTAL! Batiste récord en: ${brokenRecords.join(', ')}. ⚠️ Rendimiento atenuado en: ${anomalies.join(', ')}.`;
+        toastText = `🏆 Nuevo récord en: ${brokenRecords.join(', ')}. ⚠️ Anomalía en: ${anomalies.join(', ')}.`;
       } else if (brokenRecords.length > 0) {
         toastType = 'info';
-        toastText = `🏆 ¡BRUTAL! Has batido récord en: ${brokenRecords.join(', ')}.`;
+        toastText = `🏆 ¡Nuevo récord en: ${brokenRecords.join(', ')}!`;
       } else if (anomalies.length > 0) {
         toastType = 'warning';
-        toastText = `⚠️ Rendimiento atenuado en: ${anomalies.join(', ')}. Guardados como Anomalía/Cansancio.`;
+        toastText = `⚠️ Rendimiento atenuado en: ${anomalies.join(', ')}.`;
       }
 
       setNotification({ text: toastText, type: toastType });
@@ -249,7 +252,7 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
       setManualMedias({ Patches: '', Zip: '', Sudoku: '', Queens: '' });
       setNota('');
     } catch (err: any) {
-      alert(`Error al registrar las partidas: ${err.message}`);
+      setFormError(`Error al registrar las partidas: ${err.message}`);
     }
   };
 
@@ -334,7 +337,7 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
               <div className="bg-[#161616] border border-neutral-800 rounded-xl p-3.5 flex items-center justify-between gap-4">
                 <div className="space-y-0.5">
                   <label className="block font-semibold text-neutral-300">Media Comunidad ({parsedGame})</label>
-                  <p className="text-[10px] text-neutral-500">Completa con la media mostrada en LinkedIn.</p>
+                  <p className="text-[10px] text-neutral-500">Pre-rellenado con el último valor conocido. Ajusta si difiere.</p>
                 </div>
                 <input
                   type="text"
@@ -347,6 +350,9 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
             </div>
           )}
 
+          {formError && (
+            <p className="text-rose-400 text-[11px] bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2">{formError}</p>
+          )}
           <button
             type="submit"
             disabled={!parsedGame || parsedYo === null}
@@ -354,7 +360,6 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
           >
             <PlusCircle className="w-4 h-4" /> Guardar partida
           </button>
-          
         </form>
       )}
 
@@ -426,6 +431,9 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
           </div>
 
           {/* Submit */}
+          {formError && (
+            <p className="text-rose-400 text-[11px] bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2">{formError}</p>
+          )}
           <button
             type="submit"
             className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-2.5 rounded-xl active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"

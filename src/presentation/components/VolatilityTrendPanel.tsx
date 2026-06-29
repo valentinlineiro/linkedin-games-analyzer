@@ -25,7 +25,7 @@ const gameColors: Record<GameType, { stroke: string; border: string; bg: string;
 };
 
 export default function VolatilityTrendPanel({ runs }: VolatilityTrendPanelProps) {
-  const games: GameType[] = ['Patches', 'Zip', 'Sudoku', 'Queens'];
+  const games: GameType[] = ['Patches', 'Zip', 'Sudoku', 'Queens', 'Chess'];
 
   const [visibleGames, setVisibleGames] = useState<Record<GameType, boolean>>({
     Patches: true,
