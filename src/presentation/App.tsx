@@ -41,9 +41,15 @@ export default function App() {
       setConfirmingReset(false);
     } else {
       setConfirmingReset(true);
-      setTimeout(() => setConfirmingReset(false), 3000);
     }
   };
+
+  React.useEffect(() => {
+    if (confirmingReset) {
+      const timer = setTimeout(() => setConfirmingReset(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [confirmingReset]);
 
   const hasData = runs.length > 0;
 
