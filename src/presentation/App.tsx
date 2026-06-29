@@ -5,9 +5,11 @@ import PerformanceCharts from './components/PerformanceCharts';
 import NewRunForm from './components/NewRunForm';
 import GoogleSheetsSyncPanel from './components/GoogleSheetsSyncPanel';
 import AnomalyDetector from './components/AnomalyDetector';
+import AnalysisTabContainer from './components/AnalysisTabContainer';
 import { RefreshCw, Layers, GraduationCap, Cloud, CloudOff } from 'lucide-react';
 
 export default function App() {
+  const [activeMainTab, setActiveMainTab] = React.useState<'dashboard' | 'analysis'>('dashboard');
   const {
     runs,
     sortedRuns,
@@ -51,6 +53,30 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Tab Selector */}
+            <div className="flex bg-neutral-950 border border-neutral-800 p-1 rounded-xl text-xs gap-1" id="main-tab-selector">
+              <button
+                onClick={() => setActiveMainTab('dashboard')}
+                className={`px-4 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
+                  activeMainTab === 'dashboard'
+                    ? 'bg-neutral-800 text-white border border-neutral-700'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                Inicio
+              </button>
+              <button
+                onClick={() => setActiveMainTab('analysis')}
+                className={`px-4 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
+                  activeMainTab === 'analysis'
+                    ? 'bg-neutral-800 text-white border border-neutral-700'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                Análisis
+              </button>
+            </div>
+
             <button
               onClick={onResetData}
               className="px-3 py-1.5 border border-neutral-800 text-neutral-400 rounded-xl hover:bg-neutral-800 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
@@ -74,53 +100,59 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto p-6 space-y-6" id="app-main-content">
-        {/* Row 1: Dashboard Metrics (KPIs + Competitive Advantage Callout) */}
-        <section id="metrics-section">
-          <DashboardMetrics summaries={summaries} />
-        </section>
+        {activeMainTab === 'dashboard' ? (
+          <>
+            {/* Row 1: Dashboard Metrics (KPIs + Competitive Advantage Callout) */}
+            <section id="metrics-section">
+              <DashboardMetrics summaries={summaries} />
+            </section>
 
-        {/* Row 2: Performance Timeline (Chart) & Form Input Simulator (NewRunForm) */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6" id="charts-and-form-section">
-          <div className="lg:col-span-2">
-            <PerformanceCharts runs={sortedRuns} />
-          </div>
-          <div className="lg:col-span-1">
-            <NewRunForm 
-              onAddRun={onAddRun} 
-              onAddRuns={onImportRuns}
-              recordTimes={recordTimes} 
-              lastCommunityAverages={lastCommunityAverages} 
-            />
-          </div>
-        </section>
+            {/* Row 2: Performance Timeline (Chart) & Form Input Simulator (NewRunForm) */}
+            <section className="grid grid-cols-1 lg:grid-cols-3 gap-6" id="charts-and-form-section">
+              <div className="lg:col-span-2">
+                <PerformanceCharts runs={sortedRuns} />
+              </div>
+              <div className="lg:col-span-1">
+                <NewRunForm 
+                  onAddRun={onAddRun} 
+                  onAddRuns={onImportRuns}
+                  recordTimes={recordTimes} 
+                  lastCommunityAverages={lastCommunityAverages} 
+                />
+              </div>
+            </section>
 
-        {/* Row 3: Google Sheets Synchronization Panel & Anomaly Log Detector */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6" id="sync-and-anomalies-section">
-          <div className="lg:col-span-7">
-            <GoogleSheetsSyncPanel 
-              runs={runs}
-              user={user}
-              authLoading={authLoading}
-              activeSpreadsheet={activeSpreadsheet}
-              isSyncingLive={isSyncingLive}
-              onSignIn={onSignIn}
-              onSignOut={onSignOut}
-              onConnectSheet={onConnectSheet}
-              onDisconnectSheet={onDisconnectSheet}
-              onCreateNewSheet={onCreateNewSheet}
-              onPullFromSheet={onPullFromSheet}
-              onPushToSheet={onPushToSheet}
-              onImportRuns={onImportRuns}
-            />
-          </div>
-          <div className="lg:col-span-5">
-            <AnomalyDetector 
-              runs={sortedRuns} 
-              summaries={summaries} 
-              onDeleteRun={onDeleteRun} 
-            />
-          </div>
-        </section>
+            {/* Row 3: Google Sheets Synchronization Panel & Anomaly Log Detector */}
+            <section className="grid grid-cols-1 lg:grid-cols-12 gap-6" id="sync-and-anomalies-section">
+              <div className="lg:col-span-7">
+                <GoogleSheetsSyncPanel 
+                  runs={runs}
+                  user={user}
+                  authLoading={authLoading}
+                  activeSpreadsheet={activeSpreadsheet}
+                  isSyncingLive={isSyncingLive}
+                  onSignIn={onSignIn}
+                  onSignOut={onSignOut}
+                  onConnectSheet={onConnectSheet}
+                  onDisconnectSheet={onDisconnectSheet}
+                  onCreateNewSheet={onCreateNewSheet}
+                  onPullFromSheet={onPullFromSheet}
+                  onPushToSheet={onPushToSheet}
+                  onImportRuns={onImportRuns}
+                />
+              </div>
+              <div className="lg:col-span-5">
+                <AnomalyDetector 
+                  runs={sortedRuns} 
+                  summaries={summaries} 
+                  onDeleteRun={onDeleteRun} 
+                />
+              </div>
+            </section>
+          </>
+        ) : (
+          <AnalysisTabContainer runs={runs} summaries={summaries} />
+        )}
 
         {/* Theoretical Briefing Footer Accordion */}
         <section className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 space-y-4" id="theoretical-briefing-panel">
