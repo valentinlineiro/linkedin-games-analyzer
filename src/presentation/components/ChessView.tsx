@@ -82,9 +82,23 @@ export default function ChessView({ runs, onAddRun, onImportRuns, lastCommunityA
 
           if (gameIdx !== -1 && cols[gameIdx] && cols[gameIdx].toLowerCase() !== 'chess') continue;
 
-          const colorRaw    = (colorIdx    !== -1 ? cols[colorIdx]    : '').toUpperCase();
-          const resultadoRaw = (resultadoIdx !== -1 ? cols[resultadoIdx] : '').toUpperCase();
-          const mediaVal    = mediaIdx !== -1 ? parseFloat((cols[mediaIdx] || '').replace(',', '.')) : NaN;
+          const colorRaw     = (colorIdx     !== -1 ? cols[colorIdx]     : '').trim();
+          const resultadoRaw = (resultadoIdx !== -1 ? cols[resultadoIdx] : '').trim();
+          const mediaVal     = mediaIdx !== -1 ? parseFloat((cols[mediaIdx] || '').replace(',', '.')) : NaN;
+
+          const normalizeColor = (s: string): 'B' | 'N' | null => {
+            const u = s.toUpperCase();
+            if (['B', 'BLANCAS', 'WHITE', 'W'].includes(u)) return 'B';
+            if (['N', 'NEGRAS', 'BLACK'].includes(u)) return 'N';
+            return null;
+          };
+          const normalizeResultado = (s: string): 'V' | 'T' | 'D' | null => {
+            const u = s.toUpperCase();
+            if (['V', 'VICTORIA', 'WIN', 'W', '1', '1-0'].includes(u)) return 'V';
+            if (['T', 'TABLAS', 'DRAW', '½', '½-½', '0.5', '1/2', '1/2-1/2'].includes(u)) return 'T';
+            if (['D', 'DERROTA', 'LOSS', 'L', '0', '0-1'].includes(u)) return 'D';
+            return null;
+          };
 
           // No date in CSV → assign dates going back 1 day per row from today (preserves order)
           let timestamp: string;
@@ -103,8 +117,10 @@ export default function ChessView({ runs, onAddRun, onImportRuns, lastCommunityA
             media: !isNaN(mediaVal) && mediaVal > 0 ? mediaVal : (lastCommunityAverages['Chess'] || eloVal),
             nota: notaIdx !== -1 ? (cols[notaIdx] || '') : '',
           };
-          if (['B', 'N'].includes(colorRaw)) run.color = colorRaw as 'B' | 'N';
-          if (['V', 'T', 'D'].includes(resultadoRaw)) run.resultado = resultadoRaw as 'V' | 'T' | 'D';
+          const parsedColor = normalizeColor(colorRaw);
+          if (parsedColor) run.color = parsedColor;
+          const parsedResultado = normalizeResultado(resultadoRaw);
+          if (parsedResultado) run.resultado = parsedResultado;
           imported.push(run);
         }
 
