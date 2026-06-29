@@ -3,6 +3,7 @@ import { RawRun, GameSummary } from '../../domain/types';
 import { Calendar, Clock, Activity, BarChart2 } from 'lucide-react';
 import HeatmapPanel from './HeatmapPanel';
 import TemporalAnalysisPanel from './TemporalAnalysisPanel';
+import VolatilityTrendPanel from './VolatilityTrendPanel';
 
 interface AnalysisTabContainerProps {
   runs: RawRun[];
@@ -48,7 +49,7 @@ export default function AnalysisTabContainer({ runs, summaries }: AnalysisTabCon
       <div className="bg-[#111111] border border-neutral-800 rounded-3xl p-6 min-h-[400px]">
         {activeTab === 'heatmap' && <HeatmapPanel runs={runs} />}
         {activeTab === 'temporal' && <TemporalAnalysisPanel runs={runs} />}
-        {activeTab === 'volatility' && <div id="subtab-volatility">Tendencia de Volatilidad (Placeholder)</div>}
+        {activeTab === 'volatility' && <VolatilityTrendPanel runs={runs} />}
         {activeTab === 'correlation' && <div id="subtab-correlation">Correlación Cruzada (Placeholder)</div>}
       </div>
     </div>
