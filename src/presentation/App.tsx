@@ -33,6 +33,18 @@ export default function App() {
     onImportRuns,
   } = useTracker();
 
+  const [confirmingReset, setConfirmingReset] = React.useState(false);
+
+  const handleResetClick = () => {
+    if (confirmingReset) {
+      onResetData();
+      setConfirmingReset(false);
+    } else {
+      setConfirmingReset(true);
+      setTimeout(() => setConfirmingReset(false), 3000);
+    }
+  };
+
   const hasData = runs.length > 0;
 
   return (
@@ -80,11 +92,16 @@ export default function App() {
             </div>
 
             <button
-              onClick={onResetData}
-              className="px-3 py-1.5 border border-neutral-800 text-neutral-400 rounded-xl hover:bg-neutral-800 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
-              title="Limpiar historial de partidas"
+              onClick={handleResetClick}
+              className={`px-3 py-1.5 border rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                confirmingReset
+                  ? 'border-rose-500/50 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20'
+                  : 'border-neutral-800 text-neutral-400 hover:bg-neutral-800 hover:text-white'
+              }`}
+              title={confirmingReset ? 'Haz clic de nuevo para confirmar' : 'Limpiar historial de partidas'}
             >
-              <RefreshCw className="w-3.5 h-3.5" /> Limpiar Historial
+              <RefreshCw className="w-3.5 h-3.5" />
+              {confirmingReset ? '¿Confirmar? Haz clic de nuevo' : 'Limpiar Historial'}
             </button>
             
             {activeSpreadsheet ? (
