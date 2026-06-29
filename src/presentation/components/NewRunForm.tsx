@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GameType, RawRun } from '../../domain/types';
-import { PlusCircle, Info, Sparkles, AlertTriangle, ShieldCheck, Clipboard, Keyboard, Check } from 'lucide-react';
+import { PlusCircle, Sparkles, AlertTriangle, ShieldCheck, Clipboard, Keyboard, Check } from 'lucide-react';
 
 interface NewRunFormProps {
   onAddRun: (run: Omit<RawRun, 'id' | 'ahorro' | 'contexto'>) => void;
@@ -268,15 +268,9 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
 
   return (
     <div className="bg-[#111111] border border-neutral-800 rounded-2xl p-6 space-y-6" id="new-run-form-panel">
-      {/* Title */}
-      <div>
-        <h3 className="font-display text-lg font-bold text-white flex items-center gap-2">
-          <PlusCircle className="w-5 h-5 text-emerald-400" /> Registro Directo
-        </h3>
-        <p className="text-xs text-neutral-500">
-          Agrega tus partidas directamente pegando el texto compartido de LinkedIn o de forma manual.
-        </p>
-      </div>
+      <h3 className="font-display text-base font-bold text-white flex items-center gap-2">
+        <PlusCircle className="w-4 h-4 text-emerald-400" /> Registrar partida
+      </h3>
 
       {/* Tabs */}
       <div className="flex bg-[#1a1a1a] p-1 rounded-xl border border-neutral-800 text-xs">
@@ -374,12 +368,6 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
             <PlusCircle className="w-4 h-4" /> Guardar partida
           </button>
           
-          <div className="flex gap-1.5 items-start text-[10px] text-neutral-400 bg-[#161616] p-3 rounded-lg border border-neutral-800">
-            <Info className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-            <p className="leading-normal">
-              <strong>Cómo funciona</strong>: Pega el texto que copiaste al terminar tu partida. El app detectará el juego y tu tiempo automáticamente. Como el texto de LinkedIn no contiene la media, la pre-llenamos con tu último valor registrado para que solo tengas que revisarla y hacer clic en registrar.
-            </p>
-          </div>
         </form>
       )}
 

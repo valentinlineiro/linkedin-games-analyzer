@@ -11,6 +11,7 @@ import {
   Legend, 
 } from 'recharts';
 import { Sparkles, Calendar, TrendingUp, AlertTriangle } from 'lucide-react';
+// ponytail: Legend removed — tooltip covers it, legend was redundant noise on mobile
 
 interface PerformanceChartsProps {
   runs: RawRun[];
@@ -149,27 +150,19 @@ export default function PerformanceCharts({ runs }: PerformanceChartsProps) {
   };
 
   return (
-    <div className="bg-[#111111] border border-neutral-800 rounded-2xl p-6 space-y-6" id="performance-charts-panel">
-      {/* Chart Selector and KPI header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h3 className="font-display text-lg font-bold text-white flex items-center gap-1.5">
-            <TrendingUp className="w-5 h-5 text-emerald-400" /> Histórico y Tendencias
-          </h3>
-          <p className="text-xs text-neutral-500">
-            Evolución diaria, medias móviles semanales de 7 días y marcas de anomalías.
-          </p>
-        </div>
-
-        {/* Tab buttons */}
+    <div className="bg-[#111111] border border-neutral-800 rounded-2xl p-4 sm:p-6 space-y-4" id="performance-charts-panel">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="font-display text-base font-bold text-white flex items-center gap-1.5">
+          <TrendingUp className="w-4 h-4 text-emerald-400" /> Histórico
+        </h3>
         <div className="flex overflow-x-auto gap-1 p-1 bg-neutral-950 border border-neutral-800 rounded-xl" id="game-selector-tabs">
           {games.map(game => (
             <button
               key={game}
               onClick={() => setSelectedGame(game)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 ${
-                selectedGame === game 
-                  ? 'bg-neutral-800 text-white shadow-sm border border-neutral-700' 
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                selectedGame === game
+                  ? 'bg-neutral-800 text-white border border-neutral-700'
                   : 'text-neutral-400 hover:text-white'
               }`}
             >
@@ -179,111 +172,52 @@ export default function PerformanceCharts({ runs }: PerformanceChartsProps) {
         </div>
       </div>
 
-      {/* Mini KPIs about selected game */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4" id="chart-mini-kpis">
-        <div className="bg-[#1a1a1a] border border-neutral-800 rounded-xl p-3.5">
-          <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider block mb-0.5">Media Total del Periodo</span>
-          <span className="font-display text-xl font-bold text-white font-mono">
-            {averageYo.toFixed(2)}s
-          </span>
-        </div>
-        <div className="bg-[#1a1a1a] border border-neutral-800 rounded-xl p-3.5">
-          <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider block mb-0.5">Mejora General</span>
-          <span className={`font-display text-xl font-bold font-mono ${improvement >= 0 ? 'text-emerald-400' : 'text-neutral-300'}`}>
-            {improvement > 0 ? `-${improvement.toFixed(1)}s` : `${Math.abs(improvement).toFixed(1)}s`}
-          </span>
-          <span className="text-[10px] text-neutral-500 block mt-0.5">Primera partida vs última partida</span>
-        </div>
-        <div className="bg-[#1a1a1a] border border-neutral-800 rounded-xl p-3.5">
-          <span className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider block mb-0.5">Anomalías Detectadas</span>
-          <span className={`font-display text-xl font-bold font-mono ${chartData.filter(d => d.isAnomaly).length > 0 ? 'text-rose-400' : 'text-neutral-300'}`}>
-            {chartData.filter(d => d.isAnomaly).length}
-          </span>
-          <span className="text-[10px] text-neutral-500 block mt-0.5">Puntos fuera de la varianza típica</span>
-        </div>
-      </div>
-
-      {/* Main Recharts Area */}
-      <div className="h-80 w-full" id="recharts-wrapper">
+      <div className="h-64 sm:h-80 w-full" id="recharts-wrapper">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#262626" />
-            <XAxis 
-              dataKey="fecha" 
+            <XAxis
+              dataKey="fecha"
               tickLine={false}
               axisLine={false}
               tick={{ fill: '#6b7280', fontSize: 10, fontFamily: 'monospace' }}
             />
-            <YAxis 
+            <YAxis
               tickLine={false}
               axisLine={false}
               tick={{ fill: '#6b7280', fontSize: 10, fontFamily: 'monospace' }}
-              label={{ value: 'Segundos (s)', angle: -90, position: 'insideLeft', style: { fill: '#6b7280', fontSize: 10 } }}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Legend 
-              verticalAlign="top" 
-              height={36} 
-              iconType="circle"
-              wrapperStyle={{ fontSize: 11, fontWeight: 500 }}
-            />
-            
-            {/* Community baseline */}
-            <Line 
-              name="Media de la Comunidad" 
-              type="monotone" 
-              dataKey="mediaComunidad" 
-              stroke="#404040" 
+            <Line
+              name="Media Comunidad"
+              type="monotone"
+              dataKey="mediaComunidad"
+              stroke="#404040"
               strokeWidth={1.5}
               strokeDasharray="4 4"
               dot={false}
               activeDot={false}
             />
-
-            {/* 7-day rolling average */}
-            <Line 
-              name="Media Móvil Semanal (7d)" 
-              type="monotone" 
-              dataKey="mediaSemana" 
-              stroke="#818cf8" 
+            <Line
+              name="Media 7d"
+              type="monotone"
+              dataKey="mediaSemana"
+              stroke="#818cf8"
               strokeWidth={2}
               dot={false}
               activeDot={{ r: 4 }}
             />
-
-            {/* User score (primary line with custom dot highlights) */}
-            <Line 
-              name="Tu Tiempo Diario" 
-              type="monotone" 
-              dataKey="yo" 
-              stroke="#10b981" 
+            <Line
+              name="Tu tiempo"
+              type="monotone"
+              dataKey="yo"
+              stroke="#10b981"
               strokeWidth={2.5}
               dot={<CustomDot />}
               activeDot={{ r: 6, strokeWidth: 0 }}
             />
-            
           </LineChart>
         </ResponsiveContainer>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-4 bg-[#1a1a1a] p-3 rounded-xl border border-neutral-800 text-xs text-neutral-400">
-        <span className="font-semibold text-neutral-300">Guía de Leyenda:</span>
-        <div className="flex items-center gap-1.5">
-          <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500" />
-          <span>Tiempo diario normal</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="inline-block w-2.5 h-2.5 rounded-full bg-indigo-400" />
-          <span>Media móvil de 7 días (Media semana)</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="inline-block w-2.5 h-2.5 rounded-full bg-rose-500" />
-          <span>Anomalía de Rendimiento (Punto crítico)</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-500" />
-          <span>Récord personal (Mejor tiempo)</span>
-        </div>
       </div>
     </div>
   );
