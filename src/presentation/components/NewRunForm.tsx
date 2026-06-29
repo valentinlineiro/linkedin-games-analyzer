@@ -191,19 +191,27 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
     const parsedRuns: { game: GameType; yo: number; media: number }[] = [];
 
     for (const g of games) {
-      const playerTime = parseFloat(manualTimes[g].replace(',', '.'));
+      const timeStr = manualTimes[g].trim();
+      if (!timeStr) continue; // skip games with no time entered
+
+      const playerTime = parseFloat(timeStr.replace(',', '.'));
       const communityAverage = parseFloat(manualMedias[g].replace(',', '.'));
 
       if (isNaN(playerTime) || playerTime <= 0) {
-        alert(`Por favor, introduce un tiempo válido para ${g}.`);
+        alert(`Tiempo inválido para ${g}.`);
         return;
       }
       if (isNaN(communityAverage) || communityAverage <= 0) {
-        alert(`Por favor, introduce una media de comunidad válida para ${g}.`);
+        alert(`Media de comunidad inválida para ${g}.`);
         return;
       }
 
       parsedRuns.push({ game: g, yo: playerTime, media: communityAverage });
+    }
+
+    if (parsedRuns.length === 0) {
+      alert('Introduce al menos un tiempo.');
+      return;
     }
 
     try {
@@ -363,7 +371,7 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
             disabled={!parsedGame || parsedYo === null}
             className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-black font-bold py-2.5 rounded-xl active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
           >
-            <PlusCircle className="w-4 h-4" /> Registrar en la Base de Datos
+            <PlusCircle className="w-4 h-4" /> Guardar partida
           </button>
           
           <div className="flex gap-1.5 items-start text-[10px] text-neutral-400 bg-[#161616] p-3 rounded-lg border border-neutral-800">
@@ -413,7 +421,6 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
                       placeholder="Ej: 25.4"
                       value={manualTimes[gameName]}
                       onChange={(e) => setManualTimes(prev => ({ ...prev, [gameName]: e.target.value }))}
-                      required
                       className="w-full px-3 py-1.5 border border-neutral-800 rounded-lg bg-[#1e1e1e] text-neutral-200 focus:border-neutral-700 focus:outline-none transition-all font-mono"
                     />
                   </div>
@@ -425,7 +432,6 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
                       placeholder="Ej: 45.7"
                       value={manualMedias[gameName]}
                       onChange={(e) => setManualMedias(prev => ({ ...prev, [gameName]: e.target.value }))}
-                      required
                       className="w-full px-3 py-1.5 border border-neutral-800 rounded-lg bg-[#1e1e1e] text-neutral-200 focus:border-neutral-700 focus:outline-none transition-all font-mono"
                     />
                   </div>
@@ -451,7 +457,7 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
             type="submit"
             className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-2.5 rounded-xl active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
           >
-            <PlusCircle className="w-4 h-4" /> Registrar 4 Partidas (Manual)
+            <PlusCircle className="w-4 h-4" /> Guardar partidas
           </button>
         </form>
       )}
