@@ -155,7 +155,7 @@ export default function App() {
                   <div className="space-y-2">
                     <h2 className="text-xl font-bold text-white">Registra tu primera partida</h2>
                     <p className="text-sm text-neutral-400 max-w-sm">
-                      Copia el texto que LinkedIn muestra al terminar una partida y pégalo en el panel de la derecha. El app detectará el juego y el tiempo automáticamente.
+                      Copia el texto que LinkedIn muestra al terminar una partida y pégalo en el panel de la derecha. La app detectará el juego y el tiempo automáticamente.
                     </p>
                   </div>
                   <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-4 text-left w-full max-w-sm space-y-1">
