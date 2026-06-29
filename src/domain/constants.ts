@@ -1,5 +1,11 @@
 import { GameSummary, RawRun, GameType } from './types';
 
+// Historical Chess record before app tracking began
+export const CHESS_BASELINE = {
+  wins: 726,
+  total: 1168,
+} as const;
+
 // The default record times for new runs (to evaluate "Máximo" context before user has run history)
 export const DEFAULT_RECORD_TIMES: Record<GameType, number> = {
   Patches: 7,

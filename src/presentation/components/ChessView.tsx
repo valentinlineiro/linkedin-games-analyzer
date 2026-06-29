@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { RawRun, GameType } from '../../domain/types';
+import { CHESS_BASELINE } from '../../domain/constants';
 import { PlusCircle, TrendingUp, Calendar, FileUp } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -45,22 +46,23 @@ export default function ChessView({ runs, onAddRun, onImportRuns, lastCommunityA
         if (headerIdx === -1) throw new Error('No se encontró fila de encabezados.');
 
         const headers = lines[headerIdx].split(',').map(h => h.trim().toLowerCase().replace(/^"|"$/g, ''));
-        const col = (terms: string[]) => headers.findIndex(h => terms.some(t => h.includes(t)));
+        const col = (terms: string[]) => headers.findIndex(h => terms.some(t => h === t || h.includes(t)));
 
-        const tsIdx = col(['time', 'date', 'fecha', 'marca']);
-        const eloIdx = col(['yo', 'elo', 'tiempo personal', 'mine']);
+        const tsIdx    = col(['timestamp', 'fecha', 'date', 'time', 'marca']);
+        const eloIdx   = col(['elo', 'yo', 'tiempo personal', 'mine']);
         const colorIdx = col(['color']);
         const resultadoIdx = col(['resultado', 'result']);
-        const mediaIdx = col(['media', 'average', 'objetivo', 'target', 'comunidad']);
-        const notaIdx = col(['nota', 'note', 'comment']);
+        const mediaIdx = col(['media comunidad', 'average', 'objetivo', 'target', 'rating potencial']);
+        const notaIdx  = col(['nota', 'note', 'comment']);
+        const gameIdx  = col(['juego', 'game']);
+        // Columns we intentionally ignore: diferencia, ahorro, contexto
 
-        if (eloIdx === -1) throw new Error('No se encontró columna de ELO / Tiempo Personal.');
+        if (eloIdx === -1) throw new Error('No se encontró columna de ELO. Añade una columna llamada "ELO" o "Yo".');
 
         const parseDateStr = (s: string): string => {
           const parts = s.trim().split(/[\/\-]/);
           if (parts.length === 3) {
             const [a, b, c] = parts.map(Number);
-            // DD/MM/YYYY
             const d = new Date(c < 100 ? c + 2000 : c, b - 1, a);
             if (!isNaN(d.getTime())) return d.toISOString();
           }
@@ -70,22 +72,32 @@ export default function ChessView({ runs, onAddRun, onImportRuns, lastCommunityA
         };
 
         const imported: Omit<RawRun, 'id' | 'ahorro' | 'contexto'>[] = [];
-        for (let i = headerIdx + 1; i < lines.length; i++) {
-          const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+        const dataLines = lines.slice(headerIdx + 1);
+        const noTimestamp = tsIdx === -1;
+
+        for (let i = 0; i < dataLines.length; i++) {
+          const cols = dataLines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
           const eloVal = parseFloat((cols[eloIdx] || '').replace(',', '.'));
           if (isNaN(eloVal) || eloVal <= 0) continue;
 
-          // Skip rows that clearly belong to another game (if juego column present)
-          const gameIdx = col(['juego', 'game']);
           if (gameIdx !== -1 && cols[gameIdx] && cols[gameIdx].toLowerCase() !== 'chess') continue;
 
-          const colorRaw = (colorIdx !== -1 ? cols[colorIdx] : '').toUpperCase();
+          const colorRaw    = (colorIdx    !== -1 ? cols[colorIdx]    : '').toUpperCase();
           const resultadoRaw = (resultadoIdx !== -1 ? cols[resultadoIdx] : '').toUpperCase();
-          const mediaVal = mediaIdx !== -1 ? parseFloat((cols[mediaIdx] || '').replace(',', '.')) : NaN;
-          const tsRaw = tsIdx !== -1 && cols[tsIdx] ? cols[tsIdx] : new Date().toISOString();
+          const mediaVal    = mediaIdx !== -1 ? parseFloat((cols[mediaIdx] || '').replace(',', '.')) : NaN;
+
+          // No date in CSV → assign dates going back 1 day per row from today (preserves order)
+          let timestamp: string;
+          if (!noTimestamp && cols[tsIdx]) {
+            timestamp = parseDateStr(cols[tsIdx]);
+          } else {
+            const d = new Date();
+            d.setDate(d.getDate() - (dataLines.length - 1 - i));
+            timestamp = d.toISOString();
+          }
 
           const run: Omit<RawRun, 'id' | 'ahorro' | 'contexto'> = {
-            timestamp: parseDateStr(tsRaw),
+            timestamp,
             juego: 'Chess',
             yo: eloVal,
             media: !isNaN(mediaVal) && mediaVal > 0 ? mediaVal : (lastCommunityAverages['Chess'] || eloVal),
@@ -98,7 +110,9 @@ export default function ChessView({ runs, onAddRun, onImportRuns, lastCommunityA
 
         if (imported.length === 0) throw new Error('No se encontraron partidas de Chess válidas.');
 
-        const ok = window.confirm(`Se encontraron ${imported.length} partidas de Chess. ¿Importar?`);
+        const dateNote = noTimestamp ? '\n\nSin columna de fecha — se asignaron fechas aproximadas (1 día por partida hacia atrás desde hoy).' : '';
+
+        const ok = window.confirm(`Se encontraron ${imported.length} partidas de Chess. ¿Importar?${dateNote}`);
         if (ok) {
           await onImportRuns(imported);
           setImportMsg({ text: `${imported.length} partidas importadas`, ok: true });
@@ -168,13 +182,18 @@ export default function ChessView({ runs, onAddRun, onImportRuns, lastCommunityA
     const prev = chessRuns[chessRuns.length - 2];
     const delta = prev ? latest.yo - prev.yo : null;
 
+    const trackedTotal = chessRuns.length;
+    const combinedWins  = wins  + CHESS_BASELINE.wins;
+    const combinedTotal = trackedTotal + CHESS_BASELINE.total;
+
     return {
       latest: latest.yo,
       max: Math.max(...elos),
       min: Math.min(...elos),
       avg: Math.round(elos.reduce((a, b) => a + b, 0) / elos.length),
       wins, draws, losses,
-      total: chessRuns.length,
+      trackedTotal,
+      combinedWins, combinedTotal,
       winsAsB, totalAsB: asB.length,
       winsAsN, totalAsN: asN.length,
       delta,
@@ -376,20 +395,31 @@ export default function ChessView({ runs, onAddRun, onImportRuns, lastCommunityA
           <div className="grid grid-cols-2 gap-3">
             {/* W/D/L */}
             <div className="bg-[#111111] border border-neutral-800 rounded-2xl p-4 space-y-3">
-              <p className="text-[10px] text-neutral-500 uppercase tracking-wider">Resultados ({stats.total} partidas)</p>
+              <p className="text-[10px] text-neutral-500 uppercase tracking-wider">
+                Resultados ({stats.combinedTotal.toLocaleString('es-ES')} partidas)
+              </p>
               <div className="flex items-center gap-3 text-sm font-bold font-mono">
-                <span className="text-emerald-400">{stats.wins}V</span>
-                <span className="text-neutral-500">{stats.draws}T</span>
-                <span className="text-rose-400">{stats.losses}D</span>
+                <span className="text-emerald-400">{stats.combinedWins.toLocaleString('es-ES')}V</span>
+                {stats.trackedTotal > 0 && (
+                  <>
+                    <span className="text-neutral-500">{stats.draws}T</span>
+                    <span className="text-rose-400">{stats.losses}D</span>
+                  </>
+                )}
               </div>
-              {/* Bar */}
-              <div className="flex h-2 rounded-full overflow-hidden gap-px">
-                {stats.wins > 0 && <div className="bg-emerald-500" style={{ flex: stats.wins }} />}
-                {stats.draws > 0 && <div className="bg-neutral-600" style={{ flex: stats.draws }} />}
-                {stats.losses > 0 && <div className="bg-rose-500" style={{ flex: stats.losses }} />}
-              </div>
+              {/* Bar — tracked games only for T/D breakdown */}
+              {stats.trackedTotal > 0 && (
+                <div className="flex h-2 rounded-full overflow-hidden gap-px">
+                  {stats.wins > 0 && <div className="bg-emerald-500" style={{ flex: stats.wins }} />}
+                  {stats.draws > 0 && <div className="bg-neutral-600" style={{ flex: stats.draws }} />}
+                  {stats.losses > 0 && <div className="bg-rose-500" style={{ flex: stats.losses }} />}
+                </div>
+              )}
               <p className="text-[10px] text-neutral-500">
-                {Math.round((stats.wins / stats.total) * 100)}% victorias · {Math.round((stats.draws / stats.total) * 100)}% tablas
+                {Math.round((stats.combinedWins / stats.combinedTotal) * 100)}% victorias globales
+              </p>
+              <p className="text-[10px] text-neutral-700">
+                incluye {CHESS_BASELINE.total.toLocaleString('es-ES')} partidas previas al tracker
               </p>
             </div>
 
