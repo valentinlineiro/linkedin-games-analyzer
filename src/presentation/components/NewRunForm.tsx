@@ -242,7 +242,10 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
         }
       });
 
-      if (brokenRecords.length > 0) {
+      if (brokenRecords.length > 0 && anomalies.length > 0) {
+        toastType = 'info';
+        toastText = `🏆 ¡BRUTAL! Batiste récord en: ${brokenRecords.join(', ')}. ⚠️ Rendimiento atenuado en: ${anomalies.join(', ')}.`;
+      } else if (brokenRecords.length > 0) {
         toastType = 'info';
         toastText = `🏆 ¡BRUTAL! Has batido récord en: ${brokenRecords.join(', ')}.`;
       } else if (anomalies.length > 0) {
@@ -420,7 +423,7 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
                       value={manualTimes[gameName]}
                       onChange={(e) => setManualTimes(prev => ({ ...prev, [gameName]: e.target.value }))}
                       required
-                      className="w-full px-3 py-1.5 border border-neutral-850 rounded-lg bg-[#1e1e1e] text-neutral-200 focus:border-neutral-700 focus:outline-none transition-all font-mono"
+                      className="w-full px-3 py-1.5 border border-neutral-800 rounded-lg bg-[#1e1e1e] text-neutral-200 focus:border-neutral-700 focus:outline-none transition-all font-mono"
                     />
                   </div>
 
@@ -432,7 +435,7 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
                       value={manualMedias[gameName]}
                       onChange={(e) => setManualMedias(prev => ({ ...prev, [gameName]: e.target.value }))}
                       required
-                      className="w-full px-3 py-1.5 border border-neutral-855 rounded-lg bg-[#1e1e1e] text-neutral-200 focus:border-neutral-700 focus:outline-none transition-all font-mono"
+                      className="w-full px-3 py-1.5 border border-neutral-800 rounded-lg bg-[#1e1e1e] text-neutral-200 focus:border-neutral-700 focus:outline-none transition-all font-mono"
                     />
                   </div>
                 </div>
