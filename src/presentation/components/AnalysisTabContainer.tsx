@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { RawRun, GameSummary } from '../../domain/types';
 import { Calendar, Clock, Activity, BarChart2 } from 'lucide-react';
+import HeatmapPanel from './HeatmapPanel';
 
 interface AnalysisTabContainerProps {
   runs: RawRun[];
@@ -44,7 +45,7 @@ export default function AnalysisTabContainer({ runs, summaries }: AnalysisTabCon
 
       {/* Content area */}
       <div className="bg-[#111111] border border-neutral-800 rounded-3xl p-6 min-h-[400px]">
-        {activeTab === 'heatmap' && <div id="subtab-heatmap">Mapa de Calor (Placeholder)</div>}
+        {activeTab === 'heatmap' && <HeatmapPanel runs={runs} />}
         {activeTab === 'temporal' && <div id="subtab-temporal">Rendimiento por Hora (Placeholder)</div>}
         {activeTab === 'volatility' && <div id="subtab-volatility">Tendencia de Volatilidad (Placeholder)</div>}
         {activeTab === 'correlation' && <div id="subtab-correlation">Correlación Cruzada (Placeholder)</div>}
