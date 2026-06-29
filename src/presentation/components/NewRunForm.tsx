@@ -4,6 +4,7 @@ import { PlusCircle, Info, Sparkles, AlertTriangle, ShieldCheck, Clipboard, Keyb
 
 interface NewRunFormProps {
   onAddRun: (run: Omit<RawRun, 'id' | 'ahorro' | 'contexto'>) => void;
+  onAddRuns: (runs: Omit<RawRun, 'id' | 'ahorro' | 'contexto'>[]) => Promise<void>;
   recordTimes: Record<GameType, number>;
   lastCommunityAverages: Record<GameType, number>;
   isLiveMode?: boolean;
@@ -78,7 +79,7 @@ function parseLinkedInShareText(text: string, lastCommunityAverages: Record<Game
   return { juego, yo, media };
 }
 
-export default function NewRunForm({ onAddRun, recordTimes, lastCommunityAverages, isLiveMode }: NewRunFormProps) {
+export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommunityAverages, isLiveMode }: NewRunFormProps) {
   const [activeTab, setActiveTab] = useState<'pasted' | 'manual'>('pasted');
   const [pastedText, setPastedText] = useState('');
   
