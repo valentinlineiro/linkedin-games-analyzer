@@ -134,8 +134,9 @@ function getLocalDate(isoString: string): string {
 }
 
 // Helper to get ISO Week number in a timezone-independent (UTC) way
-function getWeekYearKey(date: Date): string {
-  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+function getWeekYearKey(isoString: string): string {
+  const [year, month, day] = isoString.split('T')[0].split('-').map(Number);
+  const d = new Date(Date.UTC(year, month - 1, day));
   const dayNum = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
@@ -193,8 +194,7 @@ export function calculateWeeklyVolatility(runs: RawRun[]): { week: string; Patch
   const weeklyData: Record<string, Record<string, number[]>> = {};
 
   runs.forEach(r => {
-    const d = new Date(r.timestamp);
-    const weekKey = getWeekYearKey(d);
+    const weekKey = getWeekYearKey(r.timestamp);
     if (!weeklyData[weekKey]) weeklyData[weekKey] = {};
     if (!weeklyData[weekKey][r.juego]) weeklyData[weekKey][r.juego] = [];
     weeklyData[weekKey][r.juego].push(r.yo);
