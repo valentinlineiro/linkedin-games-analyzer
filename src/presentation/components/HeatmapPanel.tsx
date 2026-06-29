@@ -1,6 +1,15 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { RawRun, GameType } from '../../domain/types';
 import { Calendar, Info } from 'lucide-react';
+import { generateCalendarGrid } from '../../domain/metrics';
+
+// Pure, timezone-independent helper to format Date to YYYY-MM-DD
+function formatDateToYYYYMMDD(date: Date): string {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
 
 interface HeatmapPanelProps {
   runs: RawRun[];
@@ -18,21 +27,12 @@ export default function HeatmapPanel({ runs }: HeatmapPanelProps) {
   const [hoveredDay, setHoveredDay] = useState<HoveredDayInfo | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Group runs by local date string (YYYY-MM-DD)
-  const getLocalDateString = (date: Date) => {
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  };
-
   const runsByDate = useMemo(() => {
     const map: Record<string, RawRun[]> = {};
     runs.forEach(run => {
       try {
-        const date = new Date(run.timestamp);
-        if (isNaN(date.getTime())) return;
-        const dateStr = getLocalDateString(date);
+        if (!run.timestamp) return;
+        const dateStr = run.timestamp.split('T')[0];
         if (!map[dateStr]) {
           map[dateStr] = [];
         }
@@ -44,33 +44,7 @@ export default function HeatmapPanel({ runs }: HeatmapPanelProps) {
     return map;
   }, [runs]);
 
-  // Generate grid days: 26 weeks ending on the current week (Monday to Sunday)
-  const weeks = useMemo(() => {
-    const now = new Date();
-    const dayOfWeek = now.getDay();
-    const dayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Map Monday=0 to Sunday=6
-
-    // Monday of current week
-    const currentMonday = new Date(now);
-    currentMonday.setDate(now.getDate() - dayIndex);
-    currentMonday.setHours(0, 0, 0, 0);
-
-    // Monday of 25 weeks ago
-    const startDate = new Date(currentMonday);
-    startDate.setDate(currentMonday.getDate() - 25 * 7);
-
-    const generatedWeeks: Date[][] = [];
-    for (let w = 0; w < 26; w++) {
-      const weekDays: Date[] = [];
-      for (let d = 0; d < 7; d++) {
-        const day = new Date(startDate);
-        day.setDate(startDate.getDate() + (w * 7 + d));
-        weekDays.push(day);
-      }
-      generatedWeeks.push(weekDays);
-    }
-    return generatedWeeks;
-  }, []);
+  const weeks = useMemo(() => generateCalendarGrid(new Date(), 26), []);
 
   const getMonthLabel = (date: Date) => {
     const months = [
@@ -247,7 +221,7 @@ export default function HeatmapPanel({ runs }: HeatmapPanelProps) {
                 {weeks.map((week, wIndex) => (
                   <div key={wIndex} className="flex flex-col gap-[3px] overflow-visible">
                     {week.map((day, dIndex) => {
-                      const dateStr = getLocalDateString(day);
+                      const dateStr = formatDateToYYYYMMDD(day);
                       const runsForDay = runsByDate[dateStr] || [];
                       const cellClass = getCellClasses(runsForDay);
                       
@@ -288,7 +262,7 @@ export default function HeatmapPanel({ runs }: HeatmapPanelProps) {
                 <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                   {hoveredDay.runs.map((run) => {
                     const isWinner = run.yo < run.media;
-                    const saving = run.media - run.yo;
+                    const saving = run.ahorro;
                     
                     return (
                       <div key={run.id} className="bg-neutral-900/60 border border-neutral-800/40 rounded-lg p-2 space-y-1">

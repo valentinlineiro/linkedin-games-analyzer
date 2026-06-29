@@ -249,3 +249,30 @@ export function groupRunsByTimeOfDay(runs: RawRun[], game: GameType): { block: s
     };
   });
 }
+
+export function generateCalendarGrid(anchorDate: Date, weeksCount: number): Date[][] {
+  const dayOfWeek = anchorDate.getDay();
+  const dayIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Monday=0 to Sunday=6
+
+  // Monday of anchor week
+  const currentMonday = new Date(anchorDate);
+  currentMonday.setDate(anchorDate.getDate() - dayIndex);
+  currentMonday.setHours(0, 0, 0, 0);
+
+  // Monday of (weeksCount - 1) weeks ago
+  const startDate = new Date(currentMonday);
+  startDate.setDate(currentMonday.getDate() - (weeksCount - 1) * 7);
+
+  const generatedWeeks: Date[][] = [];
+  for (let w = 0; w < weeksCount; w++) {
+    const weekDays: Date[] = [];
+    for (let d = 0; d < 7; d++) {
+      const day = new Date(startDate);
+      day.setDate(startDate.getDate() + (w * 7 + d));
+      weekDays.push(day);
+    }
+    generatedWeeks.push(weekDays);
+  }
+  return generatedWeeks;
+}
+

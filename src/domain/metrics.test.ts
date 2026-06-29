@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculatePearsonCorrelation, calculateWeeklyVolatility, groupRunsByTimeOfDay } from './metrics';
+import { calculatePearsonCorrelation, calculateWeeklyVolatility, groupRunsByTimeOfDay, generateCalendarGrid } from './metrics';
 import { RawRun } from './types';
 
 const mockRuns: RawRun[] = [
@@ -150,6 +150,38 @@ describe('Análisis Estadístico Avanzado', () => {
       const groups = groupRunsByTimeOfDay(runsWithZero, 'Patches');
       const manana = groups.find(g => g.block.startsWith('Mañana'));
       expect(manana).toEqual({ block: 'Mañana (06-12)', avgYo: 30, count: 1, avgRatio: 1.33 });
+    });
+  });
+
+  describe('generateCalendarGrid', () => {
+    it('returns exactly 26 weeks', () => {
+      const grid = generateCalendarGrid(new Date('2026-06-29'), 26);
+      expect(grid.length).toBe(26);
+    });
+
+    it('each week contains exactly 7 days', () => {
+      const grid = generateCalendarGrid(new Date('2026-06-29'), 26);
+      grid.forEach(week => {
+        expect(week.length).toBe(7);
+      });
+    });
+
+    it('the first day of each week is a Monday (day of week = 1)', () => {
+      const grid = generateCalendarGrid(new Date('2026-06-29'), 26);
+      grid.forEach(week => {
+        expect(week[0].getDay()).toBe(1); // 1 = Monday
+      });
+    });
+
+    it('the last day of the last week is Sunday, July 5th, 2026', () => {
+      const grid = generateCalendarGrid(new Date('2026-06-29'), 26);
+      const lastWeek = grid[grid.length - 1];
+      const lastDay = lastWeek[lastWeek.length - 1];
+      
+      expect(lastDay.getFullYear()).toBe(2026);
+      expect(lastDay.getMonth()).toBe(6); // July is index 6
+      expect(lastDay.getDate()).toBe(5);
+      expect(lastDay.getDay()).toBe(0); // Sunday
     });
   });
 });
