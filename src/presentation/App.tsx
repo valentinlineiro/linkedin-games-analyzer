@@ -33,6 +33,8 @@ export default function App() {
     onImportRuns,
   } = useTracker();
 
+  const hasData = runs.length > 0;
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-neutral-200 font-sans selection:bg-emerald-500/20" id="app-root-container">
       {/* Header */}
@@ -102,30 +104,58 @@ export default function App() {
       <main className="max-w-7xl mx-auto p-6 space-y-6" id="app-main-content">
         {activeMainTab === 'dashboard' ? (
           <>
-            {/* Row 1: Dashboard Metrics (KPIs + Competitive Advantage Callout) */}
-            <section id="metrics-section">
-              <DashboardMetrics summaries={summaries} />
-            </section>
+            {hasData ? (
+              <>
+                <section id="metrics-section">
+                  <DashboardMetrics summaries={summaries} />
+                </section>
+                <section className="grid grid-cols-1 lg:grid-cols-3 gap-6" id="charts-and-form-section">
+                  <div className="lg:col-span-2">
+                    <PerformanceCharts runs={sortedRuns} />
+                  </div>
+                  <div className="lg:col-span-1">
+                    <NewRunForm
+                      onAddRun={onAddRun}
+                      onAddRuns={onImportRuns}
+                      recordTimes={recordTimes}
+                      lastCommunityAverages={lastCommunityAverages}
+                    />
+                  </div>
+                </section>
+              </>
+            ) : (
+              <section className="grid grid-cols-1 lg:grid-cols-3 gap-6" id="empty-state-section">
+                <div className="lg:col-span-2 flex flex-col items-center justify-center bg-[#111111] border border-neutral-800 rounded-2xl p-12 text-center space-y-6">
+                  <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                    <Layers className="w-12 h-12 text-emerald-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <h2 className="text-xl font-bold text-white">Registra tu primera partida</h2>
+                    <p className="text-sm text-neutral-400 max-w-sm">
+                      Copia el texto que LinkedIn muestra al terminar una partida y pégalo en el panel de la derecha. El app detectará el juego y el tiempo automáticamente.
+                    </p>
+                  </div>
+                  <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-4 text-left w-full max-w-sm space-y-1">
+                    <p className="text-[10px] text-neutral-500 uppercase tracking-wider font-semibold">Ejemplo de texto de LinkedIn</p>
+                    <p className="text-xs text-neutral-300 font-mono">Patches #100 | 0:22 🔴</p>
+                    <p className="text-[10px] text-neutral-500">o simplemente el tiempo: <span className="font-mono text-neutral-400">0:22</span></p>
+                  </div>
+                  <p className="text-xs text-neutral-600">También puedes usar Entrada Manual si prefieres introducir los datos a mano.</p>
+                </div>
+                <div className="lg:col-span-1">
+                  <NewRunForm
+                    onAddRun={onAddRun}
+                    onAddRuns={onImportRuns}
+                    recordTimes={recordTimes}
+                    lastCommunityAverages={lastCommunityAverages}
+                  />
+                </div>
+              </section>
+            )}
 
-            {/* Row 2: Performance Timeline (Chart) & Form Input Simulator (NewRunForm) */}
-            <section className="grid grid-cols-1 lg:grid-cols-3 gap-6" id="charts-and-form-section">
-              <div className="lg:col-span-2">
-                <PerformanceCharts runs={sortedRuns} />
-              </div>
-              <div className="lg:col-span-1">
-                <NewRunForm 
-                  onAddRun={onAddRun} 
-                  onAddRuns={onImportRuns}
-                  recordTimes={recordTimes} 
-                  lastCommunityAverages={lastCommunityAverages} 
-                />
-              </div>
-            </section>
-
-            {/* Row 3: Google Sheets Synchronization Panel & Anomaly Log Detector */}
             <section className="grid grid-cols-1 lg:grid-cols-12 gap-6" id="sync-and-anomalies-section">
               <div className="lg:col-span-7">
-                <GoogleSheetsSyncPanel 
+                <GoogleSheetsSyncPanel
                   runs={runs}
                   user={user}
                   authLoading={authLoading}
@@ -142,10 +172,10 @@ export default function App() {
                 />
               </div>
               <div className="lg:col-span-5">
-                <AnomalyDetector 
-                  runs={sortedRuns} 
-                  summaries={summaries} 
-                  onDeleteRun={onDeleteRun} 
+                <AnomalyDetector
+                  runs={sortedRuns}
+                  summaries={summaries}
+                  onDeleteRun={onDeleteRun}
                 />
               </div>
             </section>
