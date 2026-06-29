@@ -4,6 +4,7 @@ import { Calendar, Clock, Activity, BarChart2 } from 'lucide-react';
 import HeatmapPanel from './HeatmapPanel';
 import TemporalAnalysisPanel from './TemporalAnalysisPanel';
 import VolatilityTrendPanel from './VolatilityTrendPanel';
+import CrossGameCorrelationPanel from './CrossGameCorrelationPanel';
 
 interface AnalysisTabContainerProps {
   runs: RawRun[];
@@ -50,7 +51,7 @@ export default function AnalysisTabContainer({ runs, summaries }: AnalysisTabCon
         {activeTab === 'heatmap' && <HeatmapPanel runs={runs} />}
         {activeTab === 'temporal' && <TemporalAnalysisPanel runs={runs} />}
         {activeTab === 'volatility' && <VolatilityTrendPanel runs={runs} />}
-        {activeTab === 'correlation' && <div id="subtab-correlation">Correlación Cruzada (Placeholder)</div>}
+        {activeTab === 'correlation' && <CrossGameCorrelationPanel runs={runs} />}
       </div>
     </div>
   );
