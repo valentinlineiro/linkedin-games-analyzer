@@ -117,24 +117,20 @@ export default function GoogleSheetsSyncPanel({
 
     try {
       // CSV headers
-      const headers = ['Timestamp', 'Juego', 'Tiempo Personal (Yo)', 'Media Comunidad', 'Ahorro (s)', 'Contexto', 'Notas'];
-      
+      const headers = ['Timestamp', 'Juego', 'Tiempo Personal (Yo)', 'Media Comunidad', 'Ahorro (s)', 'Contexto', 'Color', 'Resultado', 'Notas'];
+
       // Form values escaping comma and quote characters
       const csvRows = runs.map(run => {
-        const timestamp = run.timestamp;
-        const juego = run.juego;
-        const yo = run.yo;
-        const media = run.media;
-        const ahorro = run.ahorro;
-        const contexto = run.contexto;
         const nota = (run.nota || '').replace(/"/g, '""');
         return [
-          timestamp,
-          juego,
-          yo,
-          media,
-          ahorro,
-          contexto,
+          run.timestamp,
+          run.juego,
+          run.yo,
+          run.media,
+          run.ahorro,
+          run.contexto,
+          run.color || '',
+          run.resultado || '',
           `"${nota}"`
         ].join(',');
       });
@@ -206,6 +202,8 @@ export default function GoogleSheetsSyncPanel({
         const yoIdx = headers.findIndex(h => (h.includes('yo') || h.includes('tiempo') || h.includes('personal') || h.includes('mine') || h.includes('me')) && !h.includes('comunidad') && !h.includes('media') && !h.includes('average'));
         const mediaIdx = headers.findIndex(h => (h.includes('media') || h.includes('comunidad') || h.includes('average') || h.includes('community') || h.includes('global')) && !h.includes('semana') && !h.includes('week'));
         const noteIdx = headers.findIndex(h => h.includes('nota') || h.includes('comentario') || h.includes('comment') || h.includes('note'));
+        const colorIdx = headers.findIndex(h => h === 'color');
+        const resultadoIdx = headers.findIndex(h => h === 'resultado' || h === 'result');
 
         // Helper to parse dates (like DD/MM/YYYY)
         const parseDateStr = (dateStr: string): string => {
@@ -244,19 +242,21 @@ export default function GoogleSheetsSyncPanel({
         else if (fileNameLower.includes('zip')) fileDetectedGame = 'Zip';
         else if (fileNameLower.includes('sudoku')) fileDetectedGame = 'Sudoku';
         else if (fileNameLower.includes('queens')) fileDetectedGame = 'Queens';
+        else if (fileNameLower.includes('chess')) fileDetectedGame = 'Chess';
 
+        const VALID_GAMES: GameType[] = ['Patches', 'Zip', 'Sudoku', 'Queens', 'Chess'];
         let gameFallback: GameType | null = fileDetectedGame;
 
         if (gameIdx === -1 && !fileDetectedGame) {
           const response = window.prompt(
-            `No se encontró una columna "Juego" en este archivo y tampoco pudimos deducirlo por el nombre: "${file.name}".\n\nPor favor, escribe el juego al que pertenecen estas partidas (Patches, Zip, Sudoku o Queens) para importarlas todas bajo esta categoría:`
+            `No se encontró una columna "Juego" en este archivo y tampoco pudimos deducirlo por el nombre: "${file.name}".\n\nPor favor, escribe el juego al que pertenecen estas partidas (Patches, Zip, Sudoku, Queens o Chess):`
           );
-          if (response === null) return; // cancelled by user
-          
+          if (response === null) return;
+
           let cleanResponse = response.trim();
           cleanResponse = cleanResponse.charAt(0).toUpperCase() + cleanResponse.slice(1).toLowerCase();
-          
-          if (['Patches', 'Zip', 'Sudoku', 'Queens'].includes(cleanResponse)) {
+
+          if (VALID_GAMES.includes(cleanResponse as GameType)) {
             gameFallback = cleanResponse as GameType;
           } else {
             throw new Error('Nombre del juego no reconocido. La importación fue cancelada.');
@@ -287,22 +287,30 @@ export default function GoogleSheetsSyncPanel({
           const yoRaw = yoIdx !== -1 ? parseDecimalFloat(activeCols[yoIdx]) : parseDecimalFloat(activeCols[1]);
           const mediaRaw = mediaIdx !== -1 ? parseDecimalFloat(activeCols[mediaIdx]) : parseDecimalFloat(activeCols[2]);
           const nota = noteIdx !== -1 && activeCols[noteIdx] ? activeCols[noteIdx] : '';
+          const colorRaw = colorIdx !== -1 ? activeCols[colorIdx]?.trim().toUpperCase() : '';
+          const resultadoRaw = resultadoIdx !== -1 ? activeCols[resultadoIdx]?.trim().toUpperCase() : '';
 
           if (!juegoRaw || isNaN(yoRaw)) continue;
 
-          // Standardize Game Types
           let juegoClean = juegoRaw.trim();
           juegoClean = juegoClean.charAt(0).toUpperCase() + juegoClean.slice(1).toLowerCase();
-          
-          if (!['Patches', 'Zip', 'Sudoku', 'Queens'].includes(juegoClean)) continue;
 
-          importedRuns.push({
+          if (!VALID_GAMES.includes(juegoClean as GameType)) continue;
+
+          const run: Omit<RawRun, 'id' | 'ahorro' | 'contexto'> = {
             timestamp: parseDateStr(timestampRaw),
             juego: juegoClean as GameType,
             yo: yoRaw,
-            media: isNaN(mediaRaw) ? yoRaw * 1.5 : mediaRaw, // fallback community avg
-            nota: nota.replace(/""/g, '"') // unescape quotes
-          });
+            media: isNaN(mediaRaw) ? yoRaw * 1.5 : mediaRaw,
+            nota: nota.replace(/""/g, '"'),
+          };
+
+          if (juegoClean === 'Chess') {
+            if (['B', 'N'].includes(colorRaw)) run.color = colorRaw as 'B' | 'N';
+            if (['V', 'T', 'D'].includes(resultadoRaw)) run.resultado = resultadoRaw as 'V' | 'T' | 'D';
+          }
+
+          importedRuns.push(run);
         }
 
         if (importedRuns.length === 0) {

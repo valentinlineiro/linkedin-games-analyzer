@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GameType, RawRun } from '../../domain/types';
+import { GameType, RawRun, GAME_CONFIGS } from '../../domain/types';
 import { PlusCircle, Sparkles, AlertTriangle, ShieldCheck, Clipboard, Keyboard, Check } from 'lucide-react';
 
 interface NewRunFormProps {
@@ -87,19 +87,9 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
   const [parsedYo, setParsedYo] = useState<number | null>(null);
   const [pastedMedia, setPastedMedia] = useState('');
 
-  // Manual states
-  const [manualTimes, setManualTimes] = useState<Record<GameType, string>>({
-    Patches: '',
-    Zip: '',
-    Sudoku: '',
-    Queens: ''
-  });
-  const [manualMedias, setManualMedias] = useState<Record<GameType, string>>({
-    Patches: '',
-    Zip: '',
-    Sudoku: '',
-    Queens: ''
-  });
+  // Manual states (LinkedIn games only — Chess has its own tab)
+  const [manualTimes, setManualTimes] = useState({ Patches: '', Zip: '', Sudoku: '', Queens: '' });
+  const [manualMedias, setManualMedias] = useState({ Patches: '', Zip: '', Sudoku: '', Queens: '' });
   const [nota, setNota] = useState('');
   const [fecha, setFecha] = useState(() => {
     const now = new Date();
@@ -191,11 +181,11 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
     const parsedRuns: { game: GameType; yo: number; media: number }[] = [];
 
     for (const g of games) {
-      const timeStr = manualTimes[g].trim();
-      if (!timeStr) continue; // skip games with no time entered
+      const timeStr = manualTimes[g as keyof typeof manualTimes].trim();
+      if (!timeStr) continue;
 
       const playerTime = parseFloat(timeStr.replace(',', '.'));
-      const communityAverage = parseFloat(manualMedias[g].replace(',', '.'));
+      const communityAverage = parseFloat(manualMedias[g as keyof typeof manualMedias].replace(',', '.'));
 
       if (isNaN(playerTime) || playerTime <= 0) {
         alert(`Tiempo inválido para ${g}.`);
@@ -215,12 +205,10 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
     }
 
     try {
-      const runsToAdd = parsedRuns.map((r) => ({
-        timestamp: new Date(fecha).toISOString(),
-        juego: r.game,
-        yo: r.yo,
-        media: r.media,
-        nota: nota.trim() || ''
+      const ts = new Date(fecha).toISOString();
+      const n = nota.trim() || '';
+      const runsToAdd: Omit<RawRun, 'id' | 'ahorro' | 'contexto'>[] = parsedRuns.map(r => ({
+        timestamp: ts, juego: r.game, yo: r.yo, media: r.media, nota: n,
       }));
 
       await onAddRuns(runsToAdd);
@@ -257,7 +245,6 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
         setNotification(null);
       }, 6000);
 
-      // Reset manual values
       setManualTimes({ Patches: '', Zip: '', Sudoku: '', Queens: '' });
       setManualMedias({ Patches: '', Zip: '', Sudoku: '', Queens: '' });
       setNota('');
@@ -390,30 +377,40 @@ export default function NewRunForm({ onAddRun, onAddRuns, recordTimes, lastCommu
 
           {/* One row per game */}
           <div className="space-y-2">
-            <div className="grid grid-cols-[80px_1fr_1fr] gap-2 text-[10px] text-neutral-500 uppercase tracking-wider px-1">
-              <span>Juego</span><span>Tu tiempo (s)</span><span>Media (s)</span>
+            <div className="grid grid-cols-[88px_1fr_1fr] gap-2 text-[10px] text-neutral-500 uppercase tracking-wider px-1">
+              <span>Juego</span><span>Tú</span><span>Referencia</span>
             </div>
-            {(['Patches', 'Zip', 'Sudoku', 'Queens'] as GameType[]).map((gameName) => (
-              <div key={gameName} className="grid grid-cols-[80px_1fr_1fr] gap-2 items-center">
-                <span className="text-xs font-semibold text-neutral-300">{gameName}</span>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  placeholder="—"
-                  value={manualTimes[gameName]}
-                  onChange={(e) => setManualTimes(prev => ({ ...prev, [gameName]: e.target.value }))}
-                  className="px-3 py-2 border border-neutral-800 rounded-lg bg-[#1a1a1a] text-neutral-200 focus:border-neutral-700 focus:outline-none text-xs font-mono w-full"
-                />
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  placeholder="—"
-                  value={manualMedias[gameName]}
-                  onChange={(e) => setManualMedias(prev => ({ ...prev, [gameName]: e.target.value }))}
-                  className="px-3 py-2 border border-neutral-800 rounded-lg bg-[#1a1a1a] text-neutral-200 focus:border-neutral-700 focus:outline-none text-xs font-mono w-full"
-                />
-              </div>
-            ))}
+            {(['Patches', 'Zip', 'Sudoku', 'Queens'] as const).map((gameName) => {
+              const { baselineLabel } = GAME_CONFIGS[gameName];
+              const isFirst = recordTimes[gameName] === 0;
+              return (
+                <div key={gameName} className="space-y-0.5">
+                  <div className="grid grid-cols-[88px_1fr_1fr] gap-2 items-center">
+                    <span className="text-xs font-semibold text-neutral-300">{gameName}</span>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="s"
+                      value={manualTimes[gameName]}
+                      onChange={(e) => setManualTimes(prev => ({ ...prev, [gameName]: e.target.value }))}
+                      className="px-3 py-2 border border-neutral-800 rounded-lg bg-[#1a1a1a] text-neutral-200 focus:border-neutral-700 focus:outline-none text-xs font-mono w-full"
+                    />
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      placeholder={baselineLabel}
+                      value={manualMedias[gameName]}
+                      onChange={(e) => setManualMedias(prev => ({ ...prev, [gameName]: e.target.value }))}
+                      className="px-3 py-2 border border-neutral-800 rounded-lg bg-[#1a1a1a] text-neutral-200 focus:border-neutral-700 focus:outline-none text-xs font-mono w-full"
+                    />
+                  </div>
+                  {isFirst && (manualTimes[gameName] || manualMedias[gameName]) && (
+                    <p className="text-[10px] text-emerald-500/70 pl-[96px]">primera entrada · punto de partida</p>
+                  )}
+                </div>
+              );
+            })}
+
           </div>
 
           {/* Note / Memo */}

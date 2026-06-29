@@ -6,6 +6,7 @@ export const DEFAULT_RECORD_TIMES: Record<GameType, number> = {
   Zip: 7,
   Sudoku: 43,
   Queens: 25,
+  Chess: 0, // record for Chess = highest rating achieved; starts at 0 (no data)
 };
 
 // The initial aggregate data provided by the user (expressed using numbers)

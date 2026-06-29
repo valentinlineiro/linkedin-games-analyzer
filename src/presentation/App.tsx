@@ -5,10 +5,11 @@ import PerformanceCharts from './components/PerformanceCharts';
 import NewRunForm from './components/NewRunForm';
 import GoogleSheetsSyncPanel from './components/GoogleSheetsSyncPanel';
 import AnalysisTabContainer from './components/AnalysisTabContainer';
+import ChessView from './components/ChessView';
 import { Layers, Cloud, CloudOff, Settings } from 'lucide-react';
 
 export default function App() {
-  const [activeMainTab, setActiveMainTab] = React.useState<'dashboard' | 'analysis'>('dashboard');
+  const [activeMainTab, setActiveMainTab] = React.useState<'linkedin' | 'chess' | 'analysis'>('linkedin');
   const {
     runs,
     sortedRuns,
@@ -70,26 +71,19 @@ export default function App() {
           <div className="flex items-center gap-2">
             {/* Tab Selector */}
             <div className="flex bg-neutral-950 border border-neutral-800 p-1 rounded-xl text-xs gap-1" id="main-tab-selector">
-              <button
-                onClick={() => setActiveMainTab('dashboard')}
-                className={`px-4 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
-                  activeMainTab === 'dashboard'
-                    ? 'bg-neutral-800 text-white border border-neutral-700'
-                    : 'text-neutral-400 hover:text-white'
-                }`}
-              >
-                Inicio
-              </button>
-              <button
-                onClick={() => setActiveMainTab('analysis')}
-                className={`px-4 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
-                  activeMainTab === 'analysis'
-                    ? 'bg-neutral-800 text-white border border-neutral-700'
-                    : 'text-neutral-400 hover:text-white'
-                }`}
-              >
-                Análisis
-              </button>
+              {(['linkedin', 'chess', 'analysis'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveMainTab(tab)}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
+                    activeMainTab === tab
+                      ? 'bg-neutral-800 text-white border border-neutral-700'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  {tab === 'linkedin' ? 'LinkedIn' : tab === 'chess' ? 'Chess' : 'Análisis'}
+                </button>
+              ))}
             </div>
 
             {/* Cloud status indicator */}
@@ -156,24 +150,30 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="max-w-4xl mx-auto p-6 space-y-6" id="app-main-content">
-        {activeMainTab === 'dashboard' ? (
+        {activeMainTab === 'linkedin' && (
           <>
-            {/* Log form — always at the top */}
             <NewRunForm
               onAddRun={onAddRun}
               onAddRuns={onImportRuns}
               recordTimes={recordTimes}
               lastCommunityAverages={lastCommunityAverages}
             />
-
             {hasData && (
               <>
-                <DashboardMetrics summaries={summaries} />
+                <DashboardMetrics summaries={summaries.filter(s => s.juego !== 'Chess')} />
                 <PerformanceCharts runs={sortedRuns} />
               </>
             )}
           </>
-        ) : (
+        )}
+        {activeMainTab === 'chess' && (
+          <ChessView
+            runs={runs}
+            onAddRun={onAddRun}
+            lastCommunityAverages={lastCommunityAverages}
+          />
+        )}
+        {activeMainTab === 'analysis' && (
           <AnalysisTabContainer runs={runs} summaries={summaries} />
         )}
       </main>

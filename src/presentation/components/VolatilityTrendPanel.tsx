@@ -18,20 +18,21 @@ interface VolatilityTrendPanelProps {
 
 const gameColors: Record<GameType, { stroke: string; border: string; bg: string; text: string; bgActive: string }> = {
   Patches: { stroke: '#10b981', border: 'border-emerald-500/20', bg: 'bg-emerald-500/5', text: 'text-emerald-400', bgActive: 'bg-emerald-500/10' },
-  Zip: { stroke: '#0ea5e9', border: 'border-sky-500/20', bg: 'bg-sky-500/5', text: 'text-sky-400', bgActive: 'bg-sky-500/10' },
-  Sudoku: { stroke: '#f59e0b', border: 'border-amber-500/20', bg: 'bg-amber-500/5', text: 'text-amber-400', bgActive: 'bg-amber-500/10' },
-  Queens: { stroke: '#8b5cf6', border: 'border-indigo-500/20', bg: 'bg-indigo-500/5', text: 'text-indigo-400', bgActive: 'bg-indigo-500/10' },
+  Zip:     { stroke: '#0ea5e9', border: 'border-sky-500/20',     bg: 'bg-sky-500/5',     text: 'text-sky-400',     bgActive: 'bg-sky-500/10' },
+  Sudoku:  { stroke: '#f59e0b', border: 'border-amber-500/20',   bg: 'bg-amber-500/5',   text: 'text-amber-400',   bgActive: 'bg-amber-500/10' },
+  Queens:  { stroke: '#8b5cf6', border: 'border-indigo-500/20',  bg: 'bg-indigo-500/5',  text: 'text-indigo-400',  bgActive: 'bg-indigo-500/10' },
+  Chess:   { stroke: '#f43f5e', border: 'border-rose-500/20',    bg: 'bg-rose-500/5',    text: 'text-rose-400',    bgActive: 'bg-rose-500/10' },
 };
 
 export default function VolatilityTrendPanel({ runs }: VolatilityTrendPanelProps) {
-  const games: GameType[] = ['Patches', 'Zip', 'Sudoku', 'Queens'];
+  const games: GameType[] = ['Patches', 'Zip', 'Sudoku', 'Queens', 'Chess'];
 
-  // Toggle visibility of lines
   const [visibleGames, setVisibleGames] = useState<Record<GameType, boolean>>({
     Patches: true,
     Zip: true,
     Sudoku: true,
     Queens: true,
+    Chess: true,
   });
 
   // Calculate weekly volatility data

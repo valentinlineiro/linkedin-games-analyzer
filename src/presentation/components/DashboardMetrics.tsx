@@ -1,5 +1,5 @@
 import React from 'react';
-import { GameSummary } from '../../domain/types';
+import { GameSummary, GAME_CONFIGS } from '../../domain/types';
 import { Target, TrendingDown, TrendingUp, Minus } from 'lucide-react';
 
 interface DashboardMetricsProps {
@@ -11,12 +11,13 @@ export default function DashboardMetrics({ summaries }: DashboardMetricsProps) {
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" id="kpi-cards-grid">
-      {summaries.map((summary) => {
-        const faster = summary.yo < summary.media;
-        const pct = Math.abs(summary.ahorroPct);
+      {summaries.filter(s => s.yo > 0).map((summary) => {
+        const { direction, unit } = GAME_CONFIGS[summary.juego];
+        const faster = direction === 'lower' ? summary.yo < summary.media : summary.yo >= summary.media;
+        const pct = Math.abs(summary.diferenciaPct);
         const delta = summary.deltaSemana;
-        const improving = delta !== null && delta < 0;
-        const regressing = delta !== null && delta > 0;
+        const improving = delta !== null && (direction === 'lower' ? delta < 0 : delta > 0);
+        const regressing = delta !== null && (direction === 'lower' ? delta > 0 : delta < 0);
 
         return (
           <div
@@ -35,14 +36,14 @@ export default function DashboardMetrics({ summaries }: DashboardMetricsProps) {
             </div>
 
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-white font-mono">{fmt(summary.yo)}s</span>
-              <span className="text-xs text-neutral-500">vs {fmt(summary.media)}s</span>
+              <span className="text-2xl font-bold text-white font-mono">{fmt(summary.yo)}{unit}</span>
+              <span className="text-xs text-neutral-500">vs {fmt(summary.media)}{unit}</span>
             </div>
 
             <div className="flex items-center justify-between text-[10px] text-neutral-500">
               <span className="flex items-center gap-1">
                 <Target className="w-3 h-3" />
-                <span className="font-mono text-neutral-400">{fmt(summary.record, 0)}s</span>
+                <span className="font-mono text-neutral-400">{fmt(summary.record, 0)}{unit}</span>
               </span>
 
               {delta !== null ? (

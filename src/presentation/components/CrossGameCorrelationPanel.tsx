@@ -9,9 +9,10 @@ interface CrossGameCorrelationPanelProps {
 
 const gameColors: Record<GameType, { text: string; dot: string }> = {
   Patches: { text: 'text-emerald-400', dot: 'bg-emerald-500' },
-  Zip: { text: 'text-sky-400', dot: 'bg-sky-500' },
-  Sudoku: { text: 'text-amber-400', dot: 'bg-amber-500' },
-  Queens: { text: 'text-indigo-400', dot: 'bg-indigo-500' },
+  Zip:     { text: 'text-sky-400',     dot: 'bg-sky-500' },
+  Sudoku:  { text: 'text-amber-400',   dot: 'bg-amber-500' },
+  Queens:  { text: 'text-indigo-400',  dot: 'bg-indigo-500' },
+  Chess:   { text: 'text-rose-400',    dot: 'bg-rose-500' },
 };
 
 function getCellStyles(r: number, isDiagonal: boolean) {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { RawRun, GameSummary, GameType, AuthUser, SpreadsheetInfo } from '../../domain/types';
+import { RawRun, GameSummary, GameType, AuthUser, SpreadsheetInfo, GAME_CONFIGS } from '../../domain/types';
 import { INITIAL_RUNS, DEFAULT_RECORD_TIMES } from '../../domain/constants';
 import { recalculateMetrics, determineRunContext } from '../../domain/metrics';
 import { FirebaseAuthGateway } from '../../infrastructure/auth/FirebaseAuthGateway';
@@ -84,6 +84,7 @@ export function useTracker() {
       Zip: 31.49,
       Sudoku: 118.44,
       Queens: 84.03,
+      Chess: 0,
     };
     runs.forEach((run) => {
       if (run.media > 0) {
@@ -120,7 +121,8 @@ export function useTracker() {
     const ahorro = Number((newRunData.media - newRunData.yo).toFixed(2));
     const gameRuns = runs.filter((r) => r.juego === newRunData.juego);
     const prevRecord = recordTimes[newRunData.juego];
-    const contexto = determineRunContext(newRunData.yo, newRunData.media, gameRuns, prevRecord);
+    const { direction } = GAME_CONFIGS[newRunData.juego];
+    const contexto = determineRunContext(newRunData.yo, newRunData.media, gameRuns, prevRecord, direction);
 
     const runToSave: Omit<RawRun, 'id'> = {
       ...newRunData,
@@ -248,12 +250,14 @@ export function useTracker() {
         // Filter history for game
         const gameRuns = currentRunsHistory.filter(r => r.juego === newRunData.juego);
         
-        // Determine best record time to evaluate "Máximo"
-        const record = gameRuns.length > 0 
-          ? Math.min(...gameRuns.map(r => r.yo)) 
+        const { direction } = GAME_CONFIGS[newRunData.juego];
+        const record = gameRuns.length > 0
+          ? direction === 'lower'
+            ? Math.min(...gameRuns.map(r => r.yo))
+            : Math.max(...gameRuns.map(r => r.yo))
           : DEFAULT_RECORD_TIMES[newRunData.juego];
 
-        const contexto = determineRunContext(newRunData.yo, newRunData.media, gameRuns, record);
+        const contexto = determineRunContext(newRunData.yo, newRunData.media, gameRuns, record, direction);
 
         const run: RawRun = {
           ...newRunData,

@@ -1,4 +1,4 @@
-import { GameSummary, RawRun, GameType } from './types';
+import { GameSummary, RawRun, GameType, GAME_CONFIGS } from './types';
 
 /**
  * Recalculates both the rolling 7-day average for all runs, and updates the aggregated summary.
@@ -27,7 +27,7 @@ export function recalculateMetrics(runs: RawRun[]): { sortedRuns: RawRun[]; summ
   }
 
   // Group runs by game
-  const games: GameType[] = ['Patches', 'Zip', 'Sudoku', 'Queens'];
+  const games: GameType[] = ['Patches', 'Zip', 'Sudoku', 'Queens', 'Chess'];
   const summaries: GameSummary[] = games.map(juego => {
     const gameRuns = sortedRuns.filter(r => r.juego === juego);
 
@@ -49,30 +49,35 @@ export function recalculateMetrics(runs: RawRun[]): { sortedRuns: RawRun[]; summ
       };
     }
 
+    const { direction } = GAME_CONFIGS[juego];
+
     const totalYo = gameRuns.reduce((acc, r) => acc + r.yo, 0);
     const totalMedia = gameRuns.reduce((acc, r) => acc + r.media, 0);
-    
+
     const avgYo = Number((totalYo / gameRuns.length).toFixed(2));
     const avgMedia = Number((totalMedia / gameRuns.length).toFixed(2));
 
-    // Difference in percentage: (avgYo - avgMedia) / avgMedia
-    const diferenciaPct = Number((((avgYo - avgMedia) / avgMedia) * 100).toFixed(2));
+    // For lower=better: positive diferencia = you beat the baseline (good)
+    // For higher=better: positive diferencia = you're above potential (good)
+    const diferenciaPct = direction === 'lower'
+      ? Number((((avgMedia - avgYo) / avgMedia) * 100).toFixed(2))
+      : Number((((avgYo - avgMedia) / avgMedia) * 100).toFixed(2));
 
-    // Ahorro (s): avgMedia - avgYo
     const ahorroS = Number((avgMedia - avgYo).toFixed(2));
-
-    // Ahorro (%): ahorroS / avgMedia * 100
     const ahorroPct = Number(((ahorroS / avgMedia) * 100).toFixed(2));
 
-    // Win rate: percentage of runs where user beat the community average (yo < media)
-    const winRuns = gameRuns.filter(r => r.yo < r.media);
+    // Win: beat the baseline in the direction that matters
+    const winRuns = gameRuns.filter(r => direction === 'lower' ? r.yo < r.media : r.yo >= r.media);
     const victoriasPct = Number((winRuns.length / gameRuns.length).toFixed(2));
 
-    // Record: minimum player time
-    const record = Math.min(...gameRuns.map(r => r.yo));
+    // Record: best result — min for lower=better, max for higher=better
+    const record = direction === 'lower'
+      ? Math.min(...gameRuns.map(r => r.yo))
+      : Math.max(...gameRuns.map(r => r.yo));
 
-    // Peor: maximum player time
-    const peor = Math.max(...gameRuns.map(r => r.yo));
+    const peor = direction === 'lower'
+      ? Math.max(...gameRuns.map(r => r.yo))
+      : Math.min(...gameRuns.map(r => r.yo));
 
     // Rendimiento: avgMedia / avgYo
     const rendimiento = Number((avgMedia / avgYo).toFixed(2));
@@ -127,20 +132,19 @@ export function determineRunContext(
   yo: number,
   media: number,
   gameRuns: RawRun[],
-  record: number
+  record: number,
+  direction: 'lower' | 'higher' = 'lower'
 ): 'Máximo' | 'Exploración' | 'Anomalía' | 'Cansancio' {
   if (media === 0) return 'Exploración';
-  const diferencia = (media - yo) / media;
-  
-  if (diferencia >= 0.3) {
-    return 'Máximo';
-  } else if (diferencia >= 0) {
-    return 'Exploración';
-  } else if (diferencia >= -0.3) {
-    return 'Anomalía';
-  } else {
-    return 'Cansancio';
-  }
+  // positive diferencia = good performance in either direction
+  const diferencia = direction === 'lower'
+    ? (media - yo) / media
+    : (yo - media) / media;
+
+  if (diferencia >= 0.3) return 'Máximo';
+  if (diferencia >= 0)   return 'Exploración';
+  if (diferencia >= -0.3) return 'Anomalía';
+  return 'Cansancio';
 }
 
 // Helper to extract YYYY-MM-DD from ISO timestamp

@@ -3,7 +3,21 @@
  * These are pure models and contain zero dependencies on external frameworks or databases.
  */
 
-export type GameType = 'Patches' | 'Zip' | 'Sudoku' | 'Queens';
+export type GameType = 'Patches' | 'Zip' | 'Sudoku' | 'Queens' | 'Chess';
+
+export interface GameConfig {
+  direction: 'lower' | 'higher'; // what "better" means for this game
+  baselineLabel: string;          // label for the media/reference field
+  unit: string;                   // 's' for seconds, '' for rating
+}
+
+export const GAME_CONFIGS: Record<GameType, GameConfig> = {
+  Patches: { direction: 'lower',  baselineLabel: 'Media comunidad', unit: 's' },
+  Zip:     { direction: 'lower',  baselineLabel: 'Media comunidad', unit: 's' },
+  Sudoku:  { direction: 'lower',  baselineLabel: 'Media comunidad', unit: 's' },
+  Queens:  { direction: 'lower',  baselineLabel: 'Media comunidad', unit: 's' },
+  Chess:   { direction: 'higher', baselineLabel: 'Rating potencial', unit: '' },
+};
 
 export interface AuthUser {
   uid: string;
@@ -22,12 +36,14 @@ export interface RawRun {
   id: string;
   timestamp: string;  // ISO date format
   juego: GameType;
-  yo: number;         // Time in seconds
-  media: number;      // Community average in seconds
+  yo: number;         // Time in seconds (or ELO for Chess)
+  media: number;      // Community average in seconds (or potential rating for Chess)
   mediaSemana?: number; // 7-day rolling average (seconds)
   ahorro: number;     // media - yo
   contexto: 'Máximo' | 'Exploración' | 'Anomalía' | 'Cansancio';
   nota?: string;
+  color?: 'B' | 'N';           // Chess only: Blancas / Negras
+  resultado?: 'V' | 'T' | 'D'; // Chess only: Victoria / Tablas / Derrota
 }
 
 export interface GameSummary {
