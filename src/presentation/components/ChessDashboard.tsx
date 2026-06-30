@@ -101,7 +101,7 @@ export default function ChessDashboard({ runs, onDeleteRun }: ChessDashboardProp
         </div>
         <div className="bg-[#111] border border-neutral-800 p-4 rounded-2xl flex flex-col justify-between">
           <span className="text-[10px] uppercase font-bold text-neutral-500 tracking-wider">Partidas (V/T/D)</span>
-          <div className="text-sm font-semibold text-neutral-350 font-mono mt-2">
+          <div className="text-sm font-semibold text-neutral-300 font-mono mt-2">
             {stats.total} <span className="text-[10px] text-neutral-500">({stats.wins}v / {stats.draws}t / {stats.losses}d)</span>
           </div>
         </div>
@@ -111,7 +111,7 @@ export default function ChessDashboard({ runs, onDeleteRun }: ChessDashboardProp
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-[#111] border border-neutral-800 p-4 rounded-2xl flex justify-between items-center">
           <div className="space-y-1">
-            <span className="font-semibold text-neutral-450 uppercase text-[9px] tracking-wider">Rendimiento Blancas</span>
+            <span className="font-semibold text-neutral-400 uppercase text-[9px] tracking-wider">Rendimiento Blancas</span>
             <div className="font-bold text-white text-base font-mono">
               {stats.totalAsB > 0 ? `${Math.round((stats.winsAsB / stats.totalAsB) * 100)}%` : '—'}
             </div>
@@ -120,7 +120,7 @@ export default function ChessDashboard({ runs, onDeleteRun }: ChessDashboardProp
         </div>
         <div className="bg-[#111] border border-neutral-800 p-4 rounded-2xl flex justify-between items-center">
           <div className="space-y-1">
-            <span className="font-semibold text-neutral-450 uppercase text-[9px] tracking-wider">Rendimiento Negras</span>
+            <span className="font-semibold text-neutral-400 uppercase text-[9px] tracking-wider">Rendimiento Negras</span>
             <div className="font-bold text-white text-base font-mono">
               {stats.totalAsN > 0 ? `${Math.round((stats.winsAsN / stats.totalAsN) * 100)}%` : '—'}
             </div>
@@ -172,7 +172,7 @@ export default function ChessDashboard({ runs, onDeleteRun }: ChessDashboardProp
             <tbody className="divide-y divide-neutral-900 font-mono text-[11px]">
               {[...chessRuns].reverse().map(run => (
                 <tr key={run.id} className="hover:bg-neutral-900/30 text-neutral-300">
-                  <td className="px-6 py-3.5 text-neutral-550">
+                  <td className="px-6 py-3.5 text-neutral-500">
                     {new Date(run.timestamp).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                   </td>
                   <td className="px-6 py-3.5">

@@ -82,7 +82,7 @@ export default function InputDrawer({
       
       {/* Drawer Pane */}
       <div className="relative w-full max-w-[420px] bg-[#121212] border-l border-neutral-800 p-6 shadow-2xl flex flex-col h-full z-10">
-        <div className="flex justify-between items-center mb-6 border-b border-neutral-850 pb-4">
+        <div className="flex justify-between items-center mb-6 border-b border-neutral-800 pb-4">
           <h2 className="font-display text-base font-bold text-white flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-emerald-400" />
             <span>Registrar Partida</span>
@@ -107,7 +107,7 @@ export default function InputDrawer({
                       ? g === 'Chess' 
                         ? 'bg-rose-500/20 border-rose-500/40 text-rose-300' 
                         : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
-                      : 'bg-[#1a1a1a] border-neutral-800 text-neutral-500 hover:text-neutral-350'
+                      : 'bg-[#1a1a1a] border-neutral-800 text-neutral-500 hover:text-neutral-300'
                   }`}
                 >
                   {g}
@@ -209,7 +209,7 @@ export default function InputDrawer({
                       onClick={() => setColor('N')}
                       className={`flex-1 py-2 rounded-xl border transition-all cursor-pointer font-semibold ${
                         color === 'N'
-                          ? 'bg-neutral-850 text-white border-neutral-750'
+                          ? 'bg-neutral-800 text-white border-neutral-700'
                           : 'bg-[#1a1a1a] border-neutral-800 text-neutral-500 hover:text-neutral-300'
                       }`}
                     >
@@ -236,7 +236,7 @@ export default function InputDrawer({
                           className={`flex-1 py-2 rounded-xl border transition-all text-[10px] font-bold cursor-pointer ${
                             resultado === res
                               ? styles[res]
-                              : 'bg-[#1a1a1a] border-neutral-800 text-neutral-500 hover:text-neutral-350'
+                              : 'bg-[#1a1a1a] border-neutral-800 text-neutral-500 hover:text-neutral-300'
                           }`}
                         >
                           {labels[res]}
@@ -262,7 +262,7 @@ export default function InputDrawer({
           </div>
 
           {/* Submit Button */}
-          <div className="pt-4 border-t border-neutral-850 flex gap-2">
+          <div className="pt-4 border-t border-neutral-800 flex gap-2">
             <button
               type="button"
               onClick={onClose}
