@@ -66,8 +66,8 @@ export default function GoogleSheetsSyncPanel({
     setError(null);
     try {
       await onSignIn();
-    } catch (err: any) {
-      setError(err.message || 'Error al iniciar sesión con Google.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error al iniciar sesión con Google.');
     }
   };
 
@@ -76,7 +76,7 @@ export default function GoogleSheetsSyncPanel({
     try {
       await onSignOut();
       setSuccessMessage('Sesión de la nube desconectada.');
-    } catch (err: any) {
+    } catch {
       setError('Error al cerrar sesión.');
     }
   };
@@ -87,8 +87,8 @@ export default function GoogleSheetsSyncPanel({
     try {
       await onPullFromSheet();
       setSuccessMessage('¡Datos actualizados desde Firestore!');
-    } catch (err: any) {
-      setError(err.message || 'Error al descargar datos de Firestore.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error al descargar datos de Firestore.');
     } finally {
       setLocalProcessing(false);
     }
@@ -100,8 +100,8 @@ export default function GoogleSheetsSyncPanel({
     try {
       await onPushToSheet();
       setSuccessMessage('¡Historial guardado con éxito en Firestore!');
-    } catch (err: any) {
-      setError(err.message || 'Error al subir partidas a Firestore.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error al subir partidas a Firestore.');
     } finally {
       setLocalProcessing(false);
     }
@@ -147,7 +147,7 @@ export default function GoogleSheetsSyncPanel({
       document.body.removeChild(link);
       
       setSuccessMessage('¡Historial exportado a CSV con éxito!');
-    } catch (err: any) {
+    } catch {
       setError('Error al generar el archivo CSV.');
     }
   };
@@ -327,8 +327,8 @@ export default function GoogleSheetsSyncPanel({
           await onImportRuns(importedRuns);
           setSuccessMessage(`¡Importación exitosa! Se añadieron ${importedRuns.length} partidas.`);
         }
-      } catch (err: any) {
-        setError(err.message || 'Error al procesar el archivo CSV.');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Error al procesar el archivo CSV.');
       } finally {
         setLocalProcessing(false);
         if (fileInputRef.current) fileInputRef.current.value = '';

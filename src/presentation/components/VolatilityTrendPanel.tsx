@@ -24,8 +24,13 @@ const gameColors: Record<GameType, { stroke: string; border: string; bg: string;
   Chess:   { stroke: '#f43f5e', border: 'border-rose-500/20',    bg: 'bg-rose-500/5',    text: 'text-rose-400',    bgActive: 'bg-rose-500/10' },
 };
 
+interface TooltipPayloadItem {
+  name: string;
+  value: number | null;
+}
+
 // Dynamic custom tooltip
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: TooltipPayloadItem[]; label?: string }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-[#151515] border border-neutral-800 text-neutral-200 p-4 rounded-xl shadow-xl min-w-[200px]" id="volatility-custom-tooltip">
@@ -34,7 +39,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           <span className="text-[11px] font-bold text-neutral-400 font-mono">Semana: {label}</span>
         </div>
         <div className="space-y-1.5">
-          {payload.map((item: any) => {
+          {payload.map((item: TooltipPayloadItem) => {
             const gameName = item.name as GameType;
             const config = gameColors[gameName];
             return (

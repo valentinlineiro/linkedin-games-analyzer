@@ -17,13 +17,19 @@ interface ChessDashboardProps {
   onDeleteRun: (id: string) => void;
 }
 
-const CustomDot = (props: any) => {
-  const { cx, cy, payload } = props;
-  const fill = payload.resultado === 'V' ? '#10b981' : payload.resultado === 'D' ? '#f43f5e' : '#6b7280';
-  return <circle cx={cx} cy={cy} r={4} fill={fill} stroke="#111" strokeWidth={1.5} />;
+interface ChessChartDataItem {
+  elo: number;
+  resultado?: string;
+  color?: string;
+  fullDate: string;
+}
+
+const CustomDot = (props: { cx?: number; cy?: number; payload?: ChessChartDataItem }) => {
+  const fill = props.payload?.resultado === 'V' ? '#10b981' : props.payload?.resultado === 'D' ? '#f43f5e' : '#6b7280';
+  return <circle cx={props.cx} cy={props.cy} r={4} fill={fill} stroke="#111" strokeWidth={1.5} />;
 };
 
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: { payload: ChessChartDataItem }[] }) => {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
   const resultLabel = d.resultado === 'V' ? 'Victoria' : d.resultado === 'T' ? 'Tablas' : d.resultado === 'D' ? 'Derrota' : '—';

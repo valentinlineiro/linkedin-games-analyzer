@@ -30,8 +30,30 @@ interface TemporalAnalysisPanelProps {
   runs: RawRun[];
 }
 
+interface ScatterTooltipPayloadItem {
+  payload: {
+    timestamp: string;
+    yo: number;
+    media: number;
+    contexto: string;
+    nota?: string;
+    fullDate: string;
+    hour: number;
+    formattedHour: string;
+  };
+}
+
+interface BarTooltipPayloadItem {
+  payload: {
+    block: string;
+    avgRatio: number;
+    avgYo: number;
+    count: number;
+  };
+}
+
 // Custom tooltips
-const CustomScatterTooltip = ({ active, payload }: any) => {
+const CustomScatterTooltip = ({ active, payload }: { active?: boolean; payload?: ScatterTooltipPayloadItem[] }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     const dateObj = new Date(data.timestamp);
@@ -96,7 +118,7 @@ const CustomScatterTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-const CustomBarTooltip = ({ active, payload }: any) => {
+const CustomBarTooltip = ({ active, payload }: { active?: boolean; payload?: BarTooltipPayloadItem[] }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (

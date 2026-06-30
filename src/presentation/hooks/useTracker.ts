@@ -100,8 +100,8 @@ export function useTracker() {
     try {
       const loggedUser = await authGateway.signIn();
       setUser(loggedUser);
-    } catch (err: any) {
-      alert(err.message || 'Error al iniciar sesión con Google.');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Error al iniciar sesión con Google.');
     } finally {
       setAuthLoading(false);
     }
@@ -136,8 +136,8 @@ export function useTracker() {
         await firestoreRepo.saveRun(runToSave);
         const reloaded = await firestoreRepo.loadRuns();
         setRuns(reloaded);
-      } catch (err: any) {
-        alert(`Error al registrar en Firestore: ${err.message || 'La partida se guardó localmente.'}`);
+      } catch (err: unknown) {
+        alert(`Error al registrar en Firestore: ${err instanceof Error ? err.message : 'La partida se guardó localmente.'}`);
       } finally {
         setIsSyncingLive(false);
       }
@@ -162,8 +162,8 @@ export function useTracker() {
         await firestoreRepo.deleteRun(id);
         const reloaded = await firestoreRepo.loadRuns();
         setRuns(reloaded);
-      } catch (err: any) {
-        alert(`Error al eliminar de Firestore: ${err.message || 'No se pudo procesar la eliminación.'}`);
+      } catch (err: unknown) {
+        alert(`Error al eliminar de Firestore: ${err instanceof Error ? err.message : 'No se pudo procesar la eliminación.'}`);
       } finally {
         setIsSyncingLive(false);
       }
@@ -188,8 +188,8 @@ export function useTracker() {
             await firestoreRepo.deleteRun(run.id);
           }
           setRuns([]);
-        } catch (err: any) {
-          alert('Error al vaciar datos en la nube: ' + err.message);
+        } catch (err: unknown) {
+          alert('Error al vaciar datos en la nube: ' + (err instanceof Error ? err.message : ''));
         } finally {
           setIsSyncingLive(false);
         }
@@ -206,8 +206,8 @@ export function useTracker() {
     try {
       const loaded = await firestoreRepo.loadRuns();
       setRuns(loaded);
-    } catch (err: any) {
-      alert(err.message || 'Error al descargar datos de la nube.');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Error al descargar datos de la nube.');
       throw err;
     } finally {
       setIsSyncingLive(false);
@@ -226,8 +226,8 @@ export function useTracker() {
       await firestoreRepo.seedRuns(runs);
       const loaded = await firestoreRepo.loadRuns();
       setRuns(loaded);
-    } catch (err: any) {
-      alert(err.message || 'Error al subir partidas a la nube.');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Error al subir partidas a la nube.');
       throw err;
     } finally {
       setIsSyncingLive(false);
@@ -278,7 +278,7 @@ export function useTracker() {
         await localStorageRepo.seedRuns(currentRunsHistory);
         setRuns(currentRunsHistory);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       throw err;
     } finally {
       setIsSyncingLive(false);

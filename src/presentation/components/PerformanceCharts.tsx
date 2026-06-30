@@ -17,8 +17,23 @@ interface PerformanceChartsProps {
   runs: RawRun[];
 }
 
+interface TooltipPayloadItem {
+  payload: {
+    fecha: string;
+    yo: number;
+    mediaComunidad: number;
+    mediaSemana: number;
+    contexto: string;
+    ahorro: number;
+    isAnomaly: boolean;
+    isRecord: boolean;
+    fullDate: string;
+    nota?: string;
+  };
+}
+
 // Custom tooltip
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: TooltipPayloadItem[] }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
@@ -128,25 +143,24 @@ export default function PerformanceCharts({ runs }: PerformanceChartsProps) {
     : 0;
 
   // Custom Dots to highlight Anomalies and Records
-  const CustomDot = (props: any) => {
-    const { cx, cy, payload } = props;
-    if (payload.isAnomaly) {
+  const CustomDot = (props: { cx?: number; cy?: number; payload?: TooltipPayloadItem['payload'] }) => {
+    if (props.payload?.isAnomaly) {
       return (
         <g>
-          <circle cx={cx} cy={cy} r={8} fill="#f43f5e" className="animate-ping opacity-45" />
-          <circle cx={cx} cy={cy} r={5} fill="#f43f5e" stroke="#111" strokeWidth={1.5} />
+          <circle cx={props.cx} cy={props.cy} r={8} fill="#f43f5e" className="animate-ping opacity-45" />
+          <circle cx={props.cx} cy={props.cy} r={5} fill="#f43f5e" stroke="#111" strokeWidth={1.5} />
         </g>
       );
     }
-    if (payload.isRecord) {
+    if (props.payload?.isRecord) {
       return (
         <g>
-          <circle cx={cx} cy={cy} r={8} fill="#f59e0b" className="animate-pulse opacity-60" />
-          <circle cx={cx} cy={cy} r={5} fill="#f59e0b" stroke="#111" strokeWidth={1.5} />
+          <circle cx={props.cx} cy={props.cy} r={8} fill="#f59e0b" className="animate-pulse opacity-60" />
+          <circle cx={props.cx} cy={props.cy} r={5} fill="#f59e0b" stroke="#111" strokeWidth={1.5} />
         </g>
       );
     }
-    return <circle cx={cx} cy={cy} r={3} fill="#10b981" stroke="#111" strokeWidth={1} />;
+    return <circle cx={props.cx} cy={props.cy} r={3} fill="#10b981" stroke="#111" strokeWidth={1} />;
   };
 
   return (

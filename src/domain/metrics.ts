@@ -217,7 +217,7 @@ export function calculateWeeklyVolatility(runs: RawRun[]): { week: string; Patch
   });
 
   const results = Object.entries(weeklyData).map(([week, games]) => {
-    const row: any = { week };
+    const row: Record<string, string | number> & { week: string } = { week };
     Object.entries(games).forEach(([juego, times]) => {
       if (times.length < 2) {
         row[juego] = 0; // standard deviation is 0 if only 1 game
@@ -235,7 +235,7 @@ export function calculateWeeklyVolatility(runs: RawRun[]): { week: string; Patch
     return row;
   });
 
-  return results.sort((a, b) => a.week.localeCompare(b.week));
+  return results.sort((a, b) => String(a.week).localeCompare(String(b.week)));
 }
 
 export function groupRunsByTimeOfDay(runs: RawRun[], game: GameType): { block: string; avgYo: number; count: number; avgRatio: number; }[] {
