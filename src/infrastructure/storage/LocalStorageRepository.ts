@@ -36,4 +36,8 @@ export class LocalStorageRepository implements RunRepository {
   async seedRuns(runs: RawRun[]): Promise<void> {
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(runs));
   }
+
+  async clearAll(): Promise<void> {
+    localStorage.removeItem(this.STORAGE_KEY);
+  }
 }

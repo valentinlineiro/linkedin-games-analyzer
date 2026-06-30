@@ -101,21 +101,15 @@ export function useRuns() {
       : '¿Deseas eliminar permanentemente todo tu historial de partidas local? Se perderán todas tus estadísticas locales.';
 
     if (window.confirm(confirmMessage)) {
-      if (isCloud && firestoreRepo) {
-        setIsSyncingLive(true);
-        try {
-          for (const run of runs) {
-            await firestoreRepo.deleteRun(run.id);
-          }
-          setRuns([]);
-        } catch (err: unknown) {
-          alert('Error al vaciar datos en la nube: ' + (err instanceof Error ? err.message : ''));
-        } finally {
-          setIsSyncingLive(false);
-        }
-      } else {
-        localStorageRepo.seedRuns([]);
+      setIsSyncingLive(true);
+      try {
+        await firestoreRepo?.clearAll();
+        await localStorageRepo.clearAll();
         setRuns([]);
+      } catch (err: unknown) {
+        alert('Error al vaciar datos: ' + (err instanceof Error ? err.message : ''));
+      } finally {
+        setIsSyncingLive(false);
       }
     }
   };

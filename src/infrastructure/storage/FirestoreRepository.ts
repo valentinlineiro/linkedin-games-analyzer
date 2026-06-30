@@ -83,6 +83,16 @@ export class FirestoreRepository implements RunRepository {
     }
   }
 
+  async clearAll(): Promise<void> {
+    const runsCol = this.getUserRunsCollection();
+    const snapshot = await getDocs(runsCol);
+    const batch = writeBatch(this.db);
+    snapshot.forEach((docSnap) => {
+      batch.delete(doc(runsCol, docSnap.id));
+    });
+    await batch.commit();
+  }
+
   async seedRuns(runs: RawRun[]): Promise<void> {
     try {
       const runsCol = this.getUserRunsCollection();

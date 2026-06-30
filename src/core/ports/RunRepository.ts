@@ -20,4 +20,9 @@ export interface RunRepository {
    * Seeds historical or mock runs into a clean storage.
    */
   seedRuns(runs: RawRun[]): Promise<void>;
+
+  /**
+   * Removes all runs from storage.
+   */
+  clearAll(): Promise<void>;
 }
