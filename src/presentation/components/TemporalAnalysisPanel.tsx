@@ -30,6 +30,100 @@ interface TemporalAnalysisPanelProps {
   runs: RawRun[];
 }
 
+// Custom tooltips
+const CustomScatterTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    const dateObj = new Date(data.timestamp);
+    
+    // Calculate timezone offset representation
+    const offsetMinutes = -dateObj.getTimezoneOffset();
+    const offsetHrs = Math.floor(Math.abs(offsetMinutes) / 60);
+    const offsetMins = Math.abs(offsetMinutes) % 60;
+    const offsetSign = offsetMinutes >= 0 ? '+' : '-';
+    const timezoneStr = `GMT${offsetSign}${String(offsetHrs).padStart(2, '0')}:${String(offsetMins).padStart(2, '0')}`;
+
+    return (
+      <div className="bg-[#151515] border border-neutral-800 text-neutral-200 p-4 rounded-xl shadow-xl max-w-xs" id="scatter-custom-tooltip">
+        <div className="flex items-center gap-1.5 mb-2">
+          <Calendar className="w-3.5 h-3.5 text-neutral-500" />
+          <span className="text-[11px] text-neutral-500 font-medium font-mono">{data.fullDate}</span>
+        </div>
+        <div className="space-y-1.5 text-xs">
+          <div className="flex justify-between items-center">
+            <span className="text-neutral-400">Hora de juego:</span>
+            <strong className="text-neutral-200 font-mono">
+              {String(dateObj.getHours()).padStart(2, '0')}:{String(dateObj.getMinutes()).padStart(2, '0')}
+            </strong>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-neutral-400">Tu Tiempo (yo):</span>
+            <strong className="text-emerald-400 font-mono">{data.yo} s</strong>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-neutral-400">Media Comunidad:</span>
+            <strong className="text-neutral-400 font-mono">{data.media} s</strong>
+          </div>
+          <div className="flex justify-between items-center border-t border-neutral-800/80 pt-1.5 mt-1.5">
+            <span className="text-neutral-400">Rendimiento:</span>
+            <strong className={`font-mono ${(data.media / data.yo) >= 1.0 ? 'text-emerald-400' : 'text-orange-400'}`}>
+              {(data.media / data.yo).toFixed(2)}x
+            </strong>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-neutral-400">Contexto:</span>
+            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+              data.contexto === 'Máximo' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/25' :
+              data.contexto === 'Anomalía' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/25' :
+              data.contexto === 'Cansancio' ? 'bg-rose-400/10 text-rose-300 border border-rose-400/25' :
+              'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25'
+            }`}>
+              {data.contexto}
+            </span>
+          </div>
+          {data.nota && (
+            <div className="text-[10px] text-neutral-500 border-t border-neutral-800 pt-1 mt-1 leading-normal italic">
+              "{data.nota}"
+            </div>
+          )}
+          <div className="text-[9px] text-neutral-600 text-right mt-1 font-mono">
+            {timezoneStr}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+const CustomBarTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-[#151515] border border-neutral-800 text-neutral-200 p-3 rounded-xl shadow-xl max-w-xs" id="bar-custom-tooltip">
+        <strong className="block text-xs text-neutral-100 mb-1.5">{data.block}</strong>
+        <div className="space-y-1 text-xs">
+          <div className="flex justify-between items-center gap-4">
+            <span className="text-neutral-400">Ratio Rendimiento:</span>
+            <strong className={`font-mono ${data.avgRatio >= 1.0 ? 'text-emerald-400' : 'text-orange-400'}`}>
+              {data.avgRatio.toFixed(2)}x
+            </strong>
+          </div>
+          <div className="flex justify-between items-center gap-4">
+            <span className="text-neutral-400">Tiempo Medio (yo):</span>
+            <strong className="text-neutral-200 font-mono">{data.avgYo} s</strong>
+          </div>
+          <div className="flex justify-between items-center gap-4">
+            <span className="text-neutral-400">Partidas jugadas:</span>
+            <strong className="text-indigo-400 font-mono">{data.count}</strong>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function TemporalAnalysisPanel({ runs }: TemporalAnalysisPanelProps) {
   const games: GameType[] = ['Patches', 'Zip', 'Sudoku', 'Queens'];
   
@@ -114,100 +208,6 @@ export default function TemporalAnalysisPanel({ runs }: TemporalAnalysisPanelPro
       })
       .sort((a, b) => a.hour - b.hour);
   }, [runs, selectedGame, includeAnomalies]);
-
-  // Custom tooltips
-  const CustomScatterTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      const dateObj = new Date(data.timestamp);
-      
-      // Calculate timezone offset representation
-      const offsetMinutes = -dateObj.getTimezoneOffset();
-      const offsetHrs = Math.floor(Math.abs(offsetMinutes) / 60);
-      const offsetMins = Math.abs(offsetMinutes) % 60;
-      const offsetSign = offsetMinutes >= 0 ? '+' : '-';
-      const timezoneStr = `GMT${offsetSign}${String(offsetHrs).padStart(2, '0')}:${String(offsetMins).padStart(2, '0')}`;
-
-      return (
-        <div className="bg-[#151515] border border-neutral-800 text-neutral-200 p-4 rounded-xl shadow-xl max-w-xs" id="scatter-custom-tooltip">
-          <div className="flex items-center gap-1.5 mb-2">
-            <Calendar className="w-3.5 h-3.5 text-neutral-500" />
-            <span className="text-[11px] text-neutral-500 font-medium font-mono">{data.fullDate}</span>
-          </div>
-          <div className="space-y-1.5 text-xs">
-            <div className="flex justify-between items-center">
-              <span className="text-neutral-400">Hora de juego:</span>
-              <strong className="text-neutral-200 font-mono">
-                {String(dateObj.getHours()).padStart(2, '0')}:{String(dateObj.getMinutes()).padStart(2, '0')}
-              </strong>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-neutral-400">Tu Tiempo (yo):</span>
-              <strong className="text-emerald-400 font-mono">{data.yo} s</strong>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-neutral-400">Media Comunidad:</span>
-              <strong className="text-neutral-400 font-mono">{data.media} s</strong>
-            </div>
-            <div className="flex justify-between items-center border-t border-neutral-800/80 pt-1.5 mt-1.5">
-              <span className="text-neutral-400">Rendimiento:</span>
-              <strong className={`font-mono ${(data.media / data.yo) >= 1.0 ? 'text-emerald-400' : 'text-orange-400'}`}>
-                {(data.media / data.yo).toFixed(2)}x
-              </strong>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-neutral-400">Contexto:</span>
-              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                data.contexto === 'Máximo' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/25' :
-                data.contexto === 'Anomalía' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/25' :
-                data.contexto === 'Cansancio' ? 'bg-rose-400/10 text-rose-300 border border-rose-400/25' :
-                'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25'
-              }`}>
-                {data.contexto}
-              </span>
-            </div>
-            {data.nota && (
-              <div className="text-[10px] text-neutral-500 border-t border-neutral-800 pt-1 mt-1 leading-normal italic">
-                "{data.nota}"
-              </div>
-            )}
-            <div className="text-[9px] text-neutral-600 text-right mt-1 font-mono">
-              {timezoneStr}
-            </div>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  const CustomBarTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-[#151515] border border-neutral-800 text-neutral-200 p-3 rounded-xl shadow-xl max-w-xs" id="bar-custom-tooltip">
-          <strong className="block text-xs text-neutral-100 mb-1.5">{data.block}</strong>
-          <div className="space-y-1 text-xs">
-            <div className="flex justify-between items-center gap-4">
-              <span className="text-neutral-400">Ratio Rendimiento:</span>
-              <strong className={`font-mono ${data.avgRatio >= 1.0 ? 'text-emerald-400' : 'text-orange-400'}`}>
-                {data.avgRatio.toFixed(2)}x
-              </strong>
-            </div>
-            <div className="flex justify-between items-center gap-4">
-              <span className="text-neutral-400">Tiempo Medio (yo):</span>
-              <strong className="text-neutral-200 font-mono">{data.avgYo} s</strong>
-            </div>
-            <div className="flex justify-between items-center gap-4">
-              <span className="text-neutral-400">Partidas jugadas:</span>
-              <strong className="text-indigo-400 font-mono">{data.count}</strong>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
 
   // Safe number formatter
   const formatNumber = (num: number, decimals: number = 2) => {

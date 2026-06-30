@@ -17,6 +17,72 @@ interface PerformanceChartsProps {
   runs: RawRun[];
 }
 
+// Custom tooltip
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-[#151515] border border-neutral-800 text-neutral-200 p-4 rounded-xl shadow-xl max-w-sm" id="chart-custom-tooltip">
+        <div className="flex items-center gap-1.5 mb-2">
+          <Calendar className="w-3.5 h-3.5 text-neutral-500" />
+          <span className="text-[11px] text-neutral-500 font-medium font-mono">{data.fullDate}</span>
+        </div>
+        
+        <div className="space-y-1.5 border-b border-neutral-800 pb-2 mb-2">
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-neutral-400 flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" /> Tu Tiempo:
+            </span>
+            <strong className="text-emerald-400 font-mono text-sm">{data.yo} s</strong>
+          </div>
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-neutral-400 flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-neutral-600" /> Media Comunidad:
+            </span>
+            <strong className="text-neutral-400 font-mono text-sm">{data.mediaComunidad} s</strong>
+          </div>
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-neutral-400 flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-indigo-400" /> Media Móvil (7d):
+            </span>
+            <strong className="text-indigo-400 font-mono text-sm">{data.mediaSemana} s</strong>
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-neutral-500">Ahorro de Tiempo:</span>
+            <span className={`font-semibold font-mono ${data.ahorro >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              {data.ahorro >= 0 ? `+${data.ahorro}` : data.ahorro} s
+            </span>
+          </div>
+          
+          {data.contexto === 'Anomalía' && (
+            <div className="mt-2 flex items-start gap-1 bg-rose-500/10 text-rose-400 text-[11px] p-2 rounded-lg border border-rose-500/20">
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
+              <div>
+                <strong className="block text-rose-300">Anomalía Detectada</strong>
+                {data.nota || 'Tiempo inusualmente alto en comparación con tu media.'}
+              </div>
+            </div>
+          )}
+
+          {data.contexto === 'Máximo' && (
+            <div className="mt-2 flex items-start gap-1 bg-amber-500/10 text-amber-400 text-[11px] p-2 rounded-lg border border-amber-500/20">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <strong className="block text-amber-200">¡Récord Personal!</strong>
+                {data.nota || 'Excelente rendimiento récord en esta sesión.'}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function PerformanceCharts({ runs }: PerformanceChartsProps) {
   const [selectedGame, setSelectedGame] = useState<GameType>('Patches');
 
@@ -60,72 +126,6 @@ export default function PerformanceCharts({ runs }: PerformanceChartsProps) {
   const averageYo = gameRuns.length > 0
     ? gameRuns.reduce((acc, r) => acc + r.yo, 0) / gameRuns.length
     : 0;
-
-  // Custom tooltip
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-[#151515] border border-neutral-800 text-neutral-200 p-4 rounded-xl shadow-xl max-w-sm" id="chart-custom-tooltip">
-          <div className="flex items-center gap-1.5 mb-2">
-            <Calendar className="w-3.5 h-3.5 text-neutral-500" />
-            <span className="text-[11px] text-neutral-500 font-medium font-mono">{data.fullDate}</span>
-          </div>
-          
-          <div className="space-y-1.5 border-b border-neutral-800 pb-2 mb-2">
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-neutral-400 flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" /> Tu Tiempo:
-              </span>
-              <strong className="text-emerald-400 font-mono text-sm">{data.yo} s</strong>
-            </div>
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-neutral-400 flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-neutral-600" /> Media Comunidad:
-              </span>
-              <strong className="text-neutral-400 font-mono text-sm">{data.mediaComunidad} s</strong>
-            </div>
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-neutral-400 flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-indigo-400" /> Media Móvil (7d):
-              </span>
-              <strong className="text-indigo-400 font-mono text-sm">{data.mediaSemana} s</strong>
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-neutral-500">Ahorro de Tiempo:</span>
-              <span className={`font-semibold font-mono ${data.ahorro >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {data.ahorro >= 0 ? `+${data.ahorro}` : data.ahorro} s
-              </span>
-            </div>
-            
-            {data.contexto === 'Anomalía' && (
-              <div className="mt-2 flex items-start gap-1 bg-rose-500/10 text-rose-400 text-[11px] p-2 rounded-lg border border-rose-500/20">
-                <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
-                <div>
-                  <strong className="block text-rose-300">Anomalía Detectada</strong>
-                  {data.nota || 'Tiempo inusualmente alto en comparación con tu media.'}
-                </div>
-              </div>
-            )}
-
-            {data.contexto === 'Máximo' && (
-              <div className="mt-2 flex items-start gap-1 bg-amber-500/10 text-amber-400 text-[11px] p-2 rounded-lg border border-amber-500/20">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-                <div>
-                  <strong className="block text-amber-200">¡Récord Personal!</strong>
-                  {data.nota || 'Excelente rendimiento récord en esta sesión.'}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
 
   // Custom Dots to highlight Anomalies and Records
   const CustomDot = (props: any) => {

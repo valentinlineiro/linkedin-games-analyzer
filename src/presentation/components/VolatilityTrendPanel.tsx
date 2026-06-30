@@ -24,6 +24,38 @@ const gameColors: Record<GameType, { stroke: string; border: string; bg: string;
   Chess:   { stroke: '#f43f5e', border: 'border-rose-500/20',    bg: 'bg-rose-500/5',    text: 'text-rose-400',    bgActive: 'bg-rose-500/10' },
 };
 
+// Dynamic custom tooltip
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-[#151515] border border-neutral-800 text-neutral-200 p-4 rounded-xl shadow-xl min-w-[200px]" id="volatility-custom-tooltip">
+        <div className="flex items-center gap-1.5 mb-2 pb-1.5 border-b border-neutral-800">
+          <Activity className="w-3.5 h-3.5 text-neutral-500" />
+          <span className="text-[11px] font-bold text-neutral-400 font-mono">Semana: {label}</span>
+        </div>
+        <div className="space-y-1.5">
+          {payload.map((item: any) => {
+            const gameName = item.name as GameType;
+            const config = gameColors[gameName];
+            return (
+              <div key={item.name} className="flex justify-between items-center text-xs">
+                <span className="text-neutral-400 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: config.stroke }} />
+                  {gameName}:
+                </span>
+                <strong className="font-mono text-sm" style={{ color: config.stroke }}>
+                  {item.value !== undefined && item.value !== null ? item.value.toFixed(3) : '-'}
+                </strong>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function VolatilityTrendPanel({ runs }: VolatilityTrendPanelProps) {
   const games: GameType[] = ['Patches', 'Zip', 'Sudoku', 'Queens', 'Chess'];
 
@@ -39,38 +71,6 @@ export default function VolatilityTrendPanel({ runs }: VolatilityTrendPanelProps
   const data = useMemo(() => {
     return calculateWeeklyVolatility(runs);
   }, [runs]);
-
-  // Dynamic custom tooltip
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-[#151515] border border-neutral-800 text-neutral-200 p-4 rounded-xl shadow-xl min-w-[200px]" id="volatility-custom-tooltip">
-          <div className="flex items-center gap-1.5 mb-2 pb-1.5 border-b border-neutral-800">
-            <Activity className="w-3.5 h-3.5 text-neutral-500" />
-            <span className="text-[11px] font-bold text-neutral-400 font-mono">Semana: {label}</span>
-          </div>
-          <div className="space-y-1.5">
-            {payload.map((item: any) => {
-              const gameName = item.name as GameType;
-              const config = gameColors[gameName];
-              return (
-                <div key={item.name} className="flex justify-between items-center text-xs">
-                  <span className="text-neutral-400 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: config.stroke }} />
-                    {gameName}:
-                  </span>
-                  <strong className="font-mono text-sm" style={{ color: config.stroke }}>
-                    {item.value !== undefined && item.value !== null ? item.value.toFixed(3) : '-'}
-                  </strong>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
 
   // Determine if there is any data to plot
   const hasData = data.length > 0;
