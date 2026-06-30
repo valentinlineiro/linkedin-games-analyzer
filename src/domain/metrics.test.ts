@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest';
-// @ts-ignore
 import { calculatePearsonCorrelation, calculateWeeklyVolatility, groupRunsByTimeOfDay, generateCalendarGrid, calculateChessStats } from './metrics';
 import { RawRun } from './types';
 
@@ -193,7 +192,6 @@ describe('Análisis Estadístico Avanzado', () => {
         { id: 'c2', timestamp: '2026-06-02T10:00:00', juego: 'Chess', yo: 1410, media: 1500, ahorro: 0, contexto: 'Exploración', color: 'N', resultado: 'D' },
         { id: 'c3', timestamp: '2026-06-03T10:00:00', juego: 'Chess', yo: 1420, media: 1500, ahorro: 0, contexto: 'Exploración', color: 'B', resultado: 'T' }
       ];
-      // @ts-ignore
       const stats = calculateChessStats(chessRuns);
       expect(stats).not.toBeNull();
       expect(stats!.latest).toBe(1420);
