@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, Settings, Trash2 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import GoogleSheetsSyncPanel from './GoogleSheetsSyncPanel';
 import { AuthUser, RawRun } from '../../domain/types';
 
@@ -42,24 +42,26 @@ export default function SettingsDrawer({
   onResetData,
 }: SettingsDrawerProps) {
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
-      {/* Backdrop */}
-      <motion.div 
-        className="absolute inset-0 bg-black/60" 
-        onClick={onClose}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-      />
-
-      {/* Settings Pane */}
-      <motion.div 
-        className="relative w-full max-w-[420px] bg-[#121212] border-l border-neutral-800 p-6 shadow-2xl flex flex-col h-full z-10"
-        initial={{ x: '100%' }}
-        animate={{ x: 0 }}
-        exit={{ x: '100%' }}
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-      >
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div key="settings-drawer-root" className="fixed inset-0 z-50 overflow-hidden flex justify-end">
+          {/* Backdrop */}
+          <motion.div 
+            className="absolute inset-0 bg-black/60" 
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+    
+          {/* Settings Pane */}
+          <motion.div 
+            className="relative w-full max-w-[420px] bg-[#121212] border-l border-neutral-800 p-6 shadow-2xl flex flex-col h-full z-10"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          >
         <div className="flex justify-between items-center mb-6 border-b border-neutral-800 pb-4">
           <h2 className="font-display text-base font-bold text-white flex items-center gap-2">
             <Settings className="w-5 h-5 text-neutral-400" />
@@ -105,7 +107,9 @@ export default function SettingsDrawer({
             </button>
           </div>
         </div>
-      </motion.div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

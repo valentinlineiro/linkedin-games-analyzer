@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Clock, Sparkles } from 'lucide-react';
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { GameType, RawRun } from '../../domain/types';
 
 interface InputDrawerProps {
@@ -72,24 +72,26 @@ export default function InputDrawer({
   const games: GameType[] = ['Sudoku', 'Queens', 'Patches', 'Zip', 'Chess'];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
-      {/* Backdrop */}
-      <motion.div 
-        className="absolute inset-0 bg-black/60" 
-        onClick={onClose}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-      />
-      
-      {/* Drawer Pane */}
-      <motion.div 
-        className="relative w-full max-w-[420px] bg-[#121212] border-l border-neutral-800 p-6 shadow-2xl flex flex-col h-full z-10"
-        initial={{ x: '100%' }}
-        animate={{ x: 0 }}
-        exit={{ x: '100%' }}
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-      >
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div key="input-drawer-root" className="fixed inset-0 z-50 overflow-hidden flex justify-end">
+          {/* Backdrop */}
+          <motion.div 
+            className="absolute inset-0 bg-black/60" 
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+          
+          {/* Drawer Pane */}
+          <motion.div 
+            className="relative w-full max-w-[420px] bg-[#121212] border-l border-neutral-800 p-6 shadow-2xl flex flex-col h-full z-10"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          >
         <div className="flex justify-between items-center mb-6 border-b border-neutral-800 pb-4">
           <h2 className="font-display text-base font-bold text-white flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-emerald-400" />
@@ -288,7 +290,9 @@ export default function InputDrawer({
             </button>
           </div>
         </form>
-      </motion.div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
