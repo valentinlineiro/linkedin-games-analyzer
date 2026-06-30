@@ -14,7 +14,7 @@ import {
   Clock
 } from 'lucide-react';
 
-interface GoogleSheetsSyncPanelProps {
+interface SyncPanelProps {
   runs: RawRun[];
   user: AuthUser | null;
   authLoading: boolean;
@@ -30,7 +30,7 @@ interface GoogleSheetsSyncPanelProps {
   onImportRuns: (runs: Omit<RawRun, 'id' | 'ahorro' | 'contexto'>[]) => Promise<void>;
 }
 
-export default function GoogleSheetsSyncPanel({
+export default function SyncPanel({
   runs,
   user,
   authLoading,
@@ -41,7 +41,7 @@ export default function GoogleSheetsSyncPanel({
   onPullFromSheet,
   onPushToSheet,
   onImportRuns
-}: GoogleSheetsSyncPanelProps) {
+}: SyncPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [localProcessing, setLocalProcessing] = useState(false);

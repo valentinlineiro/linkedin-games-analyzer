@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { X, Settings, Trash2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import GoogleSheetsSyncPanel from './GoogleSheetsSyncPanel';
+import SyncPanel from './SyncPanel';
 import { AuthUser, RawRun } from '../../domain/types';
 
 interface SettingsDrawerProps {
@@ -87,7 +87,7 @@ export default function SettingsDrawer({
         </div>
 
         <div className="flex-grow overflow-y-auto space-y-6 pr-1">
-          <GoogleSheetsSyncPanel
+          <SyncPanel
             runs={runs}
             user={user}
             authLoading={authLoading}
