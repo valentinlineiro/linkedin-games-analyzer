@@ -20,18 +20,10 @@ export function useTracker() {
       setIsSyncingLive(true);
       firestoreRepo.loadRuns()
         .then((cloudRuns) => {
-          if (cloudRuns.length > 0) {
-            setRuns(cloudRuns);
-          } else {
-            localStorageRepo.loadRuns().then((localRuns) => {
-              setRuns(localRuns.length > 0 ? localRuns : []);
-            });
-          }
+          setRuns(cloudRuns);
         })
         .catch(() => {
-          localStorageRepo.loadRuns().then((localRuns) => {
-            setRuns(localRuns.length > 0 ? localRuns : []);
-          });
+          setRuns([]);
         })
         .finally(() => {
           setIsSyncingLive(false);
