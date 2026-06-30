@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Play, Clock, Sparkles } from 'lucide-react';
+import { X, Clock, Sparkles } from 'lucide-react';
 import { GameType, RawRun } from '../../domain/types';
 
 interface InputDrawerProps {
@@ -19,7 +19,6 @@ export default function InputDrawer({
   const [fecha, setFecha] = useState('');
   const [yo, setYo] = useState('');
   const [media, setMedia] = useState('');
-  const [contextoFatiga, setContextoFatiga] = useState<'Máximo' | 'Exploración' | 'Anomalía' | 'Cansancio'>('Exploración');
   const [nota, setNota] = useState('');
   
   // Chess special states
@@ -33,7 +32,12 @@ export default function InputDrawer({
       setFecha(new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16));
       setYo('');
       // Autofill community average from lastCommunityAverages
-      setMedia(lastCommunityAverages[game]?.toString() || '');
+      const prefillVal = lastCommunityAverages[game];
+      if (game === 'Chess') {
+        setMedia(prefillVal && prefillVal !== 0 ? prefillVal.toString() : '');
+      } else {
+        setMedia(prefillVal?.toString() || '');
+      }
     }
   }, [isOpen, game, lastCommunityAverages]);
 
@@ -49,9 +53,7 @@ export default function InputDrawer({
 
     const mediaVal = parseFloat(media) || lastCommunityAverages[game] || scoreVal;
 
-    const baseRun: Omit<RawRun, 'id' | 'ahorro' | 'contexto'> & {
-      contexto?: 'Máximo' | 'Exploración' | 'Anomalía' | 'Cansancio';
-    } = {
+    const baseRun: Omit<RawRun, 'id' | 'ahorro' | 'contexto'> = {
       timestamp: new Date(fecha).toISOString(),
       juego: game,
       yo: scoreVal,
@@ -62,8 +64,6 @@ export default function InputDrawer({
     if (game === 'Chess') {
       baseRun.color = color;
       baseRun.resultado = resultado;
-    } else {
-      baseRun.contexto = contextoFatiga;
     }
 
     onAddRun(baseRun);
@@ -81,7 +81,7 @@ export default function InputDrawer({
       />
       
       {/* Drawer Pane */}
-      <div className="relative w-full max-w-md bg-[#121212] border-l border-neutral-800 p-6 shadow-2xl flex flex-col h-full z-10">
+      <div className="relative w-full max-w-[420px] bg-[#121212] border-l border-neutral-800 p-6 shadow-2xl flex flex-col h-full z-10">
         <div className="flex justify-between items-center mb-6 border-b border-neutral-850 pb-4">
           <h2 className="font-display text-base font-bold text-white flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-emerald-400" />
@@ -157,26 +157,6 @@ export default function InputDrawer({
                     className="w-full px-3.5 py-2.5 border border-neutral-800 rounded-xl bg-[#1a1a1a] text-neutral-200 focus:border-neutral-700 focus:outline-none font-mono"
                     placeholder="ej. 110"
                   />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-neutral-400 font-semibold uppercase tracking-wider">Contexto</label>
-                <div className="flex flex-wrap gap-1.5">
-                  {(['Máximo', 'Exploración', 'Anomalía', 'Cansancio'] as const).map(c => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => setContextoFatiga(c)}
-                      className={`px-3 py-1.5 rounded-xl border transition-all cursor-pointer font-semibold ${
-                        contextoFatiga === c
-                          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                          : 'bg-[#1a1a1a] border-neutral-800 text-neutral-500 hover:text-neutral-350'
-                      }`}
-                    >
-                      {c}
-                    </button>
-                  ))}
                 </div>
               </div>
             </>
