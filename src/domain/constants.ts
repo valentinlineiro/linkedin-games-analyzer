@@ -1,10 +1,4 @@
-import { GameSummary, RawRun, GameType } from './types';
-
-// Historical Chess record before app tracking began
-export const CHESS_BASELINE = {
-  wins: 726,
-  total: 1168,
-} as const;
+import { RawRun, GameType } from './types';
 
 // The default record times for new runs (to evaluate "Máximo" context before user has run history)
 export const DEFAULT_RECORD_TIMES: Record<GameType, number> = {
@@ -14,74 +8,6 @@ export const DEFAULT_RECORD_TIMES: Record<GameType, number> = {
   Queens: 25,
   Chess: 0, // record for Chess = highest rating achieved; starts at 0 (no data)
 };
-
-// The initial aggregate data provided by the user (expressed using numbers)
-export const INITIAL_SUMMARY: GameSummary[] = [
-  {
-    juego: 'Patches',
-    yo: 26.21,
-    media: 45.74,
-    diferenciaPct: -43.0,
-    ahorroS: 19.53,
-    ahorroPct: 33.56,
-    victoriasPct: 0.87,
-    record: 7,
-    peor: 81,
-    contexto: 'Máximo',
-    rendimiento: 1.75,
-    volatilidad: 0.70,
-    deltaSemana: null,
-    totalPartidas: 12,
-  },
-  {
-    juego: 'Zip',
-    yo: 22.18,
-    media: 31.49,
-    diferenciaPct: -30.0,
-    ahorroS: 9.31,
-    ahorroPct: 17.31,
-    victoriasPct: 0.69,
-    record: 7,
-    peor: 49,
-    contexto: 'Máximo',
-    rendimiento: 1.42,
-    volatilidad: 0.56,
-    deltaSemana: null,
-    totalPartidas: 10,
-  },
-  {
-    juego: 'Sudoku',
-    yo: 81.31,
-    media: 118.44,
-    diferenciaPct: -31.0,
-    ahorroS: 37.13,
-    ahorroPct: 28.82,
-    victoriasPct: 0.95,
-    record: 43,
-    peor: 178,
-    contexto: 'Máximo',
-    rendimiento: 1.46,
-    volatilidad: 0.34,
-    deltaSemana: null,
-    totalPartidas: 9,
-  },
-  {
-    juego: 'Queens',
-    yo: 50.0,
-    media: 84.03,
-    diferenciaPct: -40.0,
-    ahorroS: 34.03,
-    ahorroPct: 29.08,
-    victoriasPct: 0.82,
-    record: 25,
-    peor: 88,
-    contexto: 'Máximo',
-    rendimiento: 1.68,
-    volatilidad: 0.32,
-    deltaSemana: null,
-    totalPartidas: 8,
-  },
-];
 
 // Rich, realistic daily historical runs from June 1st to June 24th, 2026.
 export const INITIAL_RUNS: RawRun[] = [
