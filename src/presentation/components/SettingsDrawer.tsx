@@ -48,8 +48,8 @@ export default function SettingsDrawer({
       <div className="absolute inset-0 bg-black/60 transition-opacity" onClick={onClose} />
 
       {/* Settings Pane */}
-      <div className="relative w-full max-w-md bg-[#121212] border-l border-neutral-800 p-6 shadow-2xl flex flex-col h-full z-10">
-        <div className="flex justify-between items-center mb-6 border-b border-neutral-850 pb-4">
+      <div className="relative w-full max-w-[420px] bg-[#121212] border-l border-neutral-800 p-6 shadow-2xl flex flex-col h-full z-10">
+        <div className="flex justify-between items-center mb-6 border-b border-neutral-800 pb-4">
           <h2 className="font-display text-base font-bold text-white flex items-center gap-2">
             <Settings className="w-5 h-5 text-neutral-400" />
             <span>Configuración y Sincronización</span>
@@ -76,7 +76,7 @@ export default function SettingsDrawer({
             onImportRuns={onImportRuns}
           />
 
-          <div className="border-t border-neutral-850 pt-4 space-y-2">
+          <div className="border-t border-neutral-800 pt-4 space-y-2">
             <h3 className="text-xs font-semibold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
               <Trash2 className="w-3.5 h-3.5" /> Peligro
             </h3>

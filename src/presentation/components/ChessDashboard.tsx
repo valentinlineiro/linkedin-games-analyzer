@@ -17,6 +17,40 @@ interface ChessDashboardProps {
   onDeleteRun: (id: string) => void;
 }
 
+const CustomDot = (props: any) => {
+  const { cx, cy, payload } = props;
+  const fill = payload.resultado === 'V' ? '#10b981' : payload.resultado === 'D' ? '#f43f5e' : '#6b7280';
+  return <circle cx={cx} cy={cy} r={4} fill={fill} stroke="#111" strokeWidth={1.5} />;
+};
+
+const CustomTooltip = ({ active, payload }: any) => {
+  if (!active || !payload?.length) return null;
+  const d = payload[0].payload;
+  const resultLabel = d.resultado === 'V' ? 'Victoria' : d.resultado === 'T' ? 'Tablas' : d.resultado === 'D' ? 'Derrota' : '—';
+  const colorLabel = d.color === 'B' ? 'Blancas' : d.color === 'N' ? 'Negras' : '—';
+  return (
+    <div className="bg-[#151515] border border-neutral-800 text-neutral-200 p-3 rounded-xl shadow-xl text-xs space-y-1">
+      <div className="flex items-center gap-1 text-neutral-500 mb-1">
+        <Calendar className="w-3 h-3" /> <span className="font-mono">{d.fullDate}</span>
+      </div>
+      <div className="flex justify-between gap-4">
+        <span className="text-neutral-400">ELO</span>
+        <strong className="font-mono text-white">{d.elo}</strong>
+      </div>
+      <div className="flex justify-between gap-4">
+        <span className="text-neutral-400">Color</span>
+        <span className="font-mono">{colorLabel}</span>
+      </div>
+      <div className="flex justify-between gap-4">
+        <span className="text-neutral-400">Resultado</span>
+        <span className={`font-semibold font-mono ${d.resultado === 'V' ? 'text-emerald-400' : d.resultado === 'D' ? 'text-rose-400' : 'text-neutral-400'}`}>
+          {resultLabel}
+        </span>
+      </div>
+    </div>
+  );
+};
+
 export default function ChessDashboard({ runs, onDeleteRun }: ChessDashboardProps) {
   const chessRuns = useMemo(() => 
     runs.filter(r => r.juego === 'Chess')
@@ -41,40 +75,6 @@ export default function ChessDashboard({ runs, onDeleteRun }: ChessDashboardProp
     color: r.color,
     fullDate: new Date(r.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }),
   }));
-
-  const CustomDot = (props: any) => {
-    const { cx, cy, payload } = props;
-    const fill = payload.resultado === 'V' ? '#10b981' : payload.resultado === 'D' ? '#f43f5e' : '#6b7280';
-    return <circle cx={cx} cy={cy} r={4} fill={fill} stroke="#111" strokeWidth={1.5} />;
-  };
-
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (!active || !payload?.length) return null;
-    const d = payload[0].payload;
-    const resultLabel = d.resultado === 'V' ? 'Victoria' : d.resultado === 'T' ? 'Tablas' : d.resultado === 'D' ? 'Derrota' : '—';
-    const colorLabel = d.color === 'B' ? 'Blancas' : d.color === 'N' ? 'Negras' : '—';
-    return (
-      <div className="bg-[#151515] border border-neutral-800 text-neutral-200 p-3 rounded-xl shadow-xl text-xs space-y-1">
-        <div className="flex items-center gap-1 text-neutral-500 mb-1">
-          <Calendar className="w-3 h-3" /> <span className="font-mono">{d.fullDate}</span>
-        </div>
-        <div className="flex justify-between gap-4">
-          <span className="text-neutral-400">ELO</span>
-          <strong className="font-mono text-white">{d.elo}</strong>
-        </div>
-        <div className="flex justify-between gap-4">
-          <span className="text-neutral-400">Color</span>
-          <span className="font-mono">{colorLabel}</span>
-        </div>
-        <div className="flex justify-between gap-4">
-          <span className="text-neutral-400">Resultado</span>
-          <span className={`font-semibold font-mono ${d.resultado === 'V' ? 'text-emerald-400' : d.resultado === 'D' ? 'text-rose-400' : 'text-neutral-400'}`}>
-            {resultLabel}
-          </span>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="space-y-6 text-xs">
@@ -109,7 +109,7 @@ export default function ChessDashboard({ runs, onDeleteRun }: ChessDashboardProp
 
       {/* Splits White/Black */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-[#111] border border-neutral-850 p-4 rounded-2xl flex justify-between items-center">
+        <div className="bg-[#111] border border-neutral-800 p-4 rounded-2xl flex justify-between items-center">
           <div className="space-y-1">
             <span className="font-semibold text-neutral-450 uppercase text-[9px] tracking-wider">Rendimiento Blancas</span>
             <div className="font-bold text-white text-base font-mono">
@@ -118,7 +118,7 @@ export default function ChessDashboard({ runs, onDeleteRun }: ChessDashboardProp
           </div>
           <span className="text-neutral-600 text-[10px] font-mono">{stats.winsAsB} victorias / {stats.totalAsB} partidas</span>
         </div>
-        <div className="bg-[#111] border border-neutral-850 p-4 rounded-2xl flex justify-between items-center">
+        <div className="bg-[#111] border border-neutral-800 p-4 rounded-2xl flex justify-between items-center">
           <div className="space-y-1">
             <span className="font-semibold text-neutral-450 uppercase text-[9px] tracking-wider">Rendimiento Negras</span>
             <div className="font-bold text-white text-base font-mono">
@@ -154,13 +154,13 @@ export default function ChessDashboard({ runs, onDeleteRun }: ChessDashboardProp
 
       {/* Game Log Table */}
       <div className="bg-[#111] border border-neutral-800 rounded-3xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-neutral-850 flex justify-between items-center">
+        <div className="px-6 py-4 border-b border-neutral-800 flex justify-between items-center">
           <h3 className="font-bold text-neutral-200 uppercase tracking-wider">Registro de Partidas</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-neutral-850 text-neutral-500 font-semibold text-[10px] uppercase tracking-wider bg-neutral-950/30">
+              <tr className="border-b border-neutral-800 text-neutral-500 font-semibold text-[10px] uppercase tracking-wider bg-neutral-950/30">
                 <th className="px-6 py-3.5">Fecha</th>
                 <th className="px-6 py-3.5">Color</th>
                 <th className="px-6 py-3.5">Resultado</th>

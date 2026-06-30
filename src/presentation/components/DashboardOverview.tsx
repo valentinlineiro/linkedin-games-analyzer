@@ -43,17 +43,17 @@ export default function DashboardOverview({
       {/* Global KPIs overview */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-[#111] border border-neutral-800 p-5 rounded-3xl">
-          <div className="text-[10px] font-bold text-neutral-550 uppercase tracking-wider">Partidas Registradas</div>
+          <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Partidas Registradas</div>
           <div className="text-2xl font-bold text-white font-mono mt-1">{totalRuns}</div>
         </div>
         <div className="bg-[#111] border border-neutral-800 p-5 rounded-3xl">
-          <div className="text-[10px] font-bold text-neutral-550 uppercase tracking-wider">Diferencia Promedio (LIG)</div>
+          <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Diferencia Promedio (LIG)</div>
           <div className={`text-2xl font-bold font-mono mt-1 ${avgDiff > 0 ? 'text-emerald-400' : 'text-neutral-400'}`}>
             {avgDiff > 0 ? `+${avgDiff}%` : `${avgDiff}%`}
           </div>
         </div>
         <div className="bg-[#111] border border-neutral-800 p-5 rounded-3xl">
-          <div className="text-[10px] font-bold text-neutral-550 uppercase tracking-wider">Tiempo Total Ahorrado</div>
+          <div className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Tiempo Total Ahorrado</div>
           <div className="text-2xl font-bold text-white font-mono mt-1">
             {totalAhorro > 0 ? `${(totalAhorro / 3600).toFixed(1)} Hrs` : '0.0 Hrs'}
           </div>
@@ -113,7 +113,7 @@ export default function DashboardOverview({
                 summaries={summaries.filter(s => s.juego !== 'Chess')}
               />
             ) : (
-              <div className="text-center py-12 border border-neutral-800 rounded-3xl bg-[#111] text-neutral-550">
+              <div className="text-center py-12 border border-neutral-800 rounded-3xl bg-[#111] text-neutral-500">
                 Registra partidas de juegos de LinkedIn para habilitar análisis avanzados.
               </div>
             )}

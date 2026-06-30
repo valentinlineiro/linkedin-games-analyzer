@@ -43,7 +43,7 @@ export default function Header({
           ) : (
             <button
               onClick={onOpenSettings}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border bg-neutral-900 text-neutral-500 border-neutral-800 cursor-pointer hover:bg-neutral-850 hover:text-neutral-300 transition-all"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border bg-neutral-900 text-neutral-500 border-neutral-800 cursor-pointer hover:bg-neutral-800 hover:text-neutral-300 transition-all"
             >
               <CloudOff className="w-3.5 h-3.5" /> <span>Local</span>
             </button>
@@ -58,7 +58,7 @@ export default function Header({
 
           <button
             onClick={onOpenSettings}
-            className="p-2 border border-neutral-850 rounded-xl text-neutral-400 hover:bg-neutral-900 hover:text-white transition-all cursor-pointer"
+            className="p-2 border border-neutral-800 rounded-xl text-neutral-400 hover:bg-neutral-900 hover:text-white transition-all cursor-pointer"
             title="Configuración"
           >
             <Settings className="w-4 h-4" />
