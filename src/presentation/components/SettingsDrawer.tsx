@@ -88,7 +88,7 @@ export default function SettingsDrawer({
                 onResetData();
                 onClose();
               }}
-              className="px-3 py-1.5 border border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10 text-rose-400 hover:text-rose-350 rounded-xl text-xs font-bold transition-all cursor-pointer"
+              className="px-3 py-1.5 border border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10 text-rose-400 hover:text-rose-300 rounded-xl text-xs font-bold transition-all cursor-pointer"
             >
               Limpiar Historial Local
             </button>

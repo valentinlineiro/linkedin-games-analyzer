@@ -273,7 +273,7 @@ export default function InputDrawer({
             <button
               type="submit"
               className={`flex-1 py-2.5 rounded-xl font-bold text-black transition-all cursor-pointer ${
-                game === 'Chess' ? 'bg-rose-400 hover:bg-rose-350' : 'bg-emerald-400 hover:bg-emerald-350'
+                game === 'Chess' ? 'bg-rose-400 hover:bg-rose-300' : 'bg-emerald-400 hover:bg-emerald-300'
               }`}
             >
               Guardar Partida
