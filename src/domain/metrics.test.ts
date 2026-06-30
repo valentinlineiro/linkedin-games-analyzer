@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculatePearsonCorrelation, calculateWeeklyVolatility, groupRunsByTimeOfDay, generateCalendarGrid, calculateChessStats } from './metrics';
+import { recalculateMetrics, calculatePearsonCorrelation, calculateWeeklyVolatility, groupRunsByTimeOfDay, generateCalendarGrid, calculateChessStats } from './metrics';
 import { RawRun } from './types';
 
 const mockRuns: RawRun[] = [
@@ -182,6 +182,20 @@ describe('Análisis Estadístico Avanzado', () => {
       expect(lastDay.getMonth()).toBe(6); // July is index 6
       expect(lastDay.getDate()).toBe(5);
       expect(lastDay.getDay()).toBe(0); // Sunday
+    });
+  });
+
+  describe('recalculateMetrics immutability', () => {
+    it('does not mutate the original run objects', () => {
+      const runs: RawRun[] = [
+        { id: '1', timestamp: '2026-06-01T10:00:00', juego: 'Patches', yo: 20, media: 40, ahorro: 20, contexto: 'Exploración' },
+        { id: '2', timestamp: '2026-06-02T10:00:00', juego: 'Patches', yo: 30, media: 40, ahorro: 10, contexto: 'Exploración' },
+      ];
+      const originalKeys = Object.keys(runs[0]).sort();
+      recalculateMetrics(runs);
+      expect(Object.keys(runs[0]).sort()).toEqual(originalKeys);
+      expect(runs[0].yo).toBe(20);
+      expect('mediaSemana' in runs[0]).toBe(false);
     });
   });
 

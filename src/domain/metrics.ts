@@ -6,25 +6,20 @@ import { GameSummary, RawRun, GameType, GAME_CONFIGS } from './types';
  */
 export function recalculateMetrics(runs: RawRun[]): { sortedRuns: RawRun[]; summaries: GameSummary[] } {
   // Sort runs by date ascending to compute rolling average correctly
-  const sortedRuns = [...runs].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  const sorted = [...runs].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
-  // 1. Calculate Rolling 7-day average for each run
-  // Rolling 7 days means: average of the user's times for that game in the interval [currentDate - 7 days, currentDate]
-  for (let i = 0; i < sortedRuns.length; i++) {
-    const currentRun = sortedRuns[i];
-    const currentDate = new Date(currentRun.timestamp);
+  // 1. Calculate Rolling 7-day average for each run (without mutating input objects)
+  const sortedRuns: RawRun[] = sorted.map((run, i) => {
+    const currentDate = new Date(run.timestamp);
     const sevenDaysAgo = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-    // Filter runs of same game within the [currentDate - 7 days, currentDate] window
-    const windowRuns = sortedRuns.slice(0, i + 1).filter(r => {
-      if (r.juego !== currentRun.juego) return false;
+    const windowRuns = sorted.slice(0, i + 1).filter(r => {
+      if (r.juego !== run.juego) return false;
       const runDate = new Date(r.timestamp);
       return runDate >= sevenDaysAgo && runDate <= currentDate;
     });
-
     const sum = windowRuns.reduce((acc, r) => acc + r.yo, 0);
-    currentRun.mediaSemana = Number((sum / windowRuns.length).toFixed(2));
-  }
+    return { ...run, mediaSemana: Number((sum / windowRuns.length).toFixed(2)) };
+  });
 
   // Group runs by game
   const games: GameType[] = ['Patches', 'Zip', 'Sudoku', 'Queens', 'Chess'];
