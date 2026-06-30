@@ -1,6 +1,6 @@
 import React from 'react';
 import { RawRun, GameSummary } from '../../domain/types';
-import { ShieldAlert, Check, Trash2 } from 'lucide-react';
+import { ShieldAlert, Trash2 } from 'lucide-react';
 
 interface AnomalyDetectorProps {
   runs: RawRun[];

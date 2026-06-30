@@ -13,16 +13,14 @@ import {
   Bar, 
   ReferenceLine
 } from 'recharts';
-import { 
-  Clock, 
-  Calendar, 
-  ArrowUpRight, 
-  ArrowDownRight, 
-  AlertTriangle, 
-  Sparkles, 
-  Activity, 
-  Zap, 
-  Info 
+import {
+  Clock,
+  Calendar,
+  ArrowUpRight,
+  ArrowDownRight,
+  Activity,
+  Zap,
+  Info,
 } from 'lucide-react';
 import { groupRunsByTimeOfDay } from '../../domain/metrics';
 

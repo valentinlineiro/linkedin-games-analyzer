@@ -1,17 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { RawRun, AuthUser, SpreadsheetInfo, GameType } from '../../domain/types';
-import { 
-  Database, 
-  Check, 
-  LogOut, 
-  AlertCircle, 
-  DownloadCloud, 
+import {
+  Database,
+  Check,
+  LogOut,
+  AlertCircle,
+  DownloadCloud,
   UploadCloud,
   FileDown,
   FileUp,
   Cloud,
-  Shield,
-  Clock
+  Clock,
 } from 'lucide-react';
 
 interface SyncPanelProps {
@@ -207,7 +206,7 @@ export default function SyncPanel({
 
         // Helper to parse dates (like DD/MM/YYYY)
         const parseDateStr = (dateStr: string): string => {
-          const parts = dateStr.trim().split(/[\/\-]/);
+          const parts = dateStr.trim().split(/[/-]/);
           if (parts.length === 3) {
             const day = parseInt(parts[0], 10);
             const month = parseInt(parts[1], 10);
@@ -231,7 +230,7 @@ export default function SyncPanel({
         // Helper to parse European decimals (e.g., "19,29" or "0,8")
         const parseDecimalFloat = (val: string): number => {
           if (!val) return NaN;
-          const clean = val.replace(/[^0-9\.\,\-]/g, '').replace(',', '.');
+          const clean = val.replace(/[^0-9.,-]/g, '').replace(',', '.');
           return parseFloat(clean);
         };
 

@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { RawRun, GameType } from '../../domain/types';
-import { 
-  ResponsiveContainer, 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
 } from 'recharts';
 import { Sparkles, Calendar, TrendingUp, AlertTriangle } from 'lucide-react';
 // ponytail: Legend removed — tooltip covers it, legend was redundant noise on mobile
@@ -133,14 +132,6 @@ export default function PerformanceCharts({ runs }: PerformanceChartsProps) {
   }));
 
   const games: GameType[] = ['Patches', 'Zip', 'Sudoku', 'Queens'];
-
-  // Calculate some analytics for the selected game
-  const latestRun = gameRuns[gameRuns.length - 1];
-  const earliestRun = gameRuns[0];
-  const improvement = latestRun && earliestRun ? earliestRun.yo - latestRun.yo : 0;
-  const averageYo = gameRuns.length > 0
-    ? gameRuns.reduce((acc, r) => acc + r.yo, 0) / gameRuns.length
-    : 0;
 
   // Custom Dots to highlight Anomalies and Records
   const CustomDot = (props: { cx?: number; cy?: number; payload?: TooltipPayloadItem['payload'] }) => {

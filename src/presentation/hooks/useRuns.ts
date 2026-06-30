@@ -130,7 +130,7 @@ export function useRuns() {
     try {
       const sortedImported = [...importedRuns].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
-      let currentRunsHistory = [...runs];
+      const currentRunsHistory = [...runs];
       const runsToSave: RawRun[] = [];
 
       for (let i = 0; i < sortedImported.length; i++) {
@@ -165,8 +165,6 @@ export function useRuns() {
         await localStorageRepo.seedRuns(currentRunsHistory);
         setRuns(currentRunsHistory);
       }
-    } catch (err: unknown) {
-      throw err;
     } finally {
       setIsSyncingLive(false);
     }
