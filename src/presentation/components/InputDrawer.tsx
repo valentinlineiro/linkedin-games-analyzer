@@ -42,6 +42,20 @@ export default function InputDrawer({
     }
   }, [isOpen, game, lastCommunityAverages]);
 
+  // Escape key handler for accessibility
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const scoreVal = parseFloat(yo);
@@ -86,7 +100,7 @@ export default function InputDrawer({
           
           {/* Drawer Pane */}
           <motion.div 
-            className="relative w-full max-w-[420px] bg-[#121212] border-l border-neutral-800 p-6 shadow-2xl flex flex-col h-full z-10"
+            className="relative w-full max-w-[100vw] sm:max-w-[380px] md:max-w-[420px] bg-[#121212] border-l border-neutral-800 p-6 shadow-2xl flex flex-col h-full z-10"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}

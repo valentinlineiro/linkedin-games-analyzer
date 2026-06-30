@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, Settings, Trash2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import GoogleSheetsSyncPanel from './GoogleSheetsSyncPanel';
@@ -41,6 +41,20 @@ export default function SettingsDrawer({
   onImportRuns,
   onResetData,
 }: SettingsDrawerProps) {
+  // Escape key handler for accessibility
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -56,7 +70,7 @@ export default function SettingsDrawer({
     
           {/* Settings Pane */}
           <motion.div 
-            className="relative w-full max-w-[420px] bg-[#121212] border-l border-neutral-800 p-6 shadow-2xl flex flex-col h-full z-10"
+            className="relative w-full max-w-[100vw] sm:max-w-[380px] md:max-w-[420px] bg-[#121212] border-l border-neutral-800 p-6 shadow-2xl flex flex-col h-full z-10"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
