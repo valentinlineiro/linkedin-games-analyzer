@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AnimatePresence } from 'motion/react';
 import { useTracker } from './hooks/useTracker';
 import Header from './components/Header';
 import InputDrawer from './components/InputDrawer';
@@ -43,32 +44,40 @@ export default function App() {
       />
 
       {/* Global Slide-over Data Entry Drawer */}
-      <InputDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        onAddRun={onAddRun}
-        lastCommunityAverages={lastCommunityAverages}
-      />
+      <AnimatePresence>
+        {isDrawerOpen && (
+          <InputDrawer
+            isOpen={isDrawerOpen}
+            onClose={() => setIsDrawerOpen(false)}
+            onAddRun={onAddRun}
+            lastCommunityAverages={lastCommunityAverages}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Sheets Sync and System Settings Drawer */}
-      <SettingsDrawer
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        runs={runs}
-        user={user}
-        authLoading={authLoading}
-        activeSpreadsheet={activeSpreadsheet}
-        isSyncingLive={isSyncingLive}
-        onSignIn={onSignIn}
-        onSignOut={onSignOut}
-        onConnectSheet={onConnectSheet}
-        onDisconnectSheet={onDisconnectSheet}
-        onCreateNewSheet={onCreateNewSheet}
-        onPullFromSheet={onPullFromSheet}
-        onPushToSheet={onPushToSheet}
-        onImportRuns={onImportRuns}
-        onResetData={onResetData}
-      />
+      <AnimatePresence>
+        {isSettingsOpen && (
+          <SettingsDrawer
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+            runs={runs}
+            user={user}
+            authLoading={authLoading}
+            activeSpreadsheet={activeSpreadsheet}
+            isSyncingLive={isSyncingLive}
+            onSignIn={onSignIn}
+            onSignOut={onSignOut}
+            onConnectSheet={onConnectSheet}
+            onDisconnectSheet={onDisconnectSheet}
+            onCreateNewSheet={onCreateNewSheet}
+            onPullFromSheet={onPullFromSheet}
+            onPushToSheet={onPushToSheet}
+            onImportRuns={onImportRuns}
+            onResetData={onResetData}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Main Workspace Dashboard Content */}
       <main className="max-w-4xl mx-auto p-6 space-y-6" id="app-main-content">
