@@ -297,3 +297,57 @@ export function generateCalendarGrid(anchorDate: Date, weeksCount: number): Date
   return generatedWeeks;
 }
 
+export interface ChessStats {
+  latest: number;
+  max: number;
+  min: number;
+  avg: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  total: number;
+  winsAsB: number;
+  totalAsB: number;
+  winsAsN: number;
+  totalAsN: number;
+  delta: number | null;
+}
+
+export function calculateChessStats(runs: RawRun[]): ChessStats | null {
+  const chessRuns = runs
+    .filter(r => r.juego === 'Chess')
+    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+  if (chessRuns.length === 0) return null;
+
+  const elos = chessRuns.map(r => r.yo);
+  const wins = chessRuns.filter(r => r.resultado === 'V').length;
+  const draws = chessRuns.filter(r => r.resultado === 'T').length;
+  const losses = chessRuns.filter(r => r.resultado === 'D').length;
+
+  const asB = chessRuns.filter(r => r.color === 'B');
+  const asN = chessRuns.filter(r => r.color === 'N');
+  const winsAsB = asB.filter(r => r.resultado === 'V').length;
+  const winsAsN = asN.filter(r => r.resultado === 'V').length;
+
+  const latest = chessRuns[chessRuns.length - 1];
+  const prev = chessRuns[chessRuns.length - 2];
+  const delta = prev ? latest.yo - prev.yo : null;
+
+  return {
+    latest: latest.yo,
+    max: Math.max(...elos),
+    min: Math.min(...elos),
+    avg: Math.round(elos.reduce((a, b) => a + b, 0) / elos.length),
+    wins,
+    draws,
+    losses,
+    total: chessRuns.length,
+    winsAsB,
+    totalAsB: asB.length,
+    winsAsN,
+    totalAsN: asN.length,
+    delta,
+  };
+}
+

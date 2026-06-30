@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { calculatePearsonCorrelation, calculateWeeklyVolatility, groupRunsByTimeOfDay, generateCalendarGrid } from './metrics';
+// @ts-ignore
+import { calculatePearsonCorrelation, calculateWeeklyVolatility, groupRunsByTimeOfDay, generateCalendarGrid, calculateChessStats } from './metrics';
 import { RawRun } from './types';
 
 const mockRuns: RawRun[] = [
@@ -182,6 +183,52 @@ describe('Análisis Estadístico Avanzado', () => {
       expect(lastDay.getMonth()).toBe(6); // July is index 6
       expect(lastDay.getDate()).toBe(5);
       expect(lastDay.getDay()).toBe(0); // Sunday
+    });
+  });
+
+  describe('calculateChessStats', () => {
+    it('calcula estadisticas de ajedrez correctamente', () => {
+      const chessRuns: RawRun[] = [
+        { id: 'c1', timestamp: '2026-06-01T10:00:00', juego: 'Chess', yo: 1400, media: 1500, ahorro: 0, contexto: 'Exploración', color: 'B', resultado: 'V' },
+        { id: 'c2', timestamp: '2026-06-02T10:00:00', juego: 'Chess', yo: 1410, media: 1500, ahorro: 0, contexto: 'Exploración', color: 'N', resultado: 'D' },
+        { id: 'c3', timestamp: '2026-06-03T10:00:00', juego: 'Chess', yo: 1420, media: 1500, ahorro: 0, contexto: 'Exploración', color: 'B', resultado: 'T' }
+      ];
+      // @ts-ignore
+      const stats = calculateChessStats(chessRuns);
+      expect(stats).not.toBeNull();
+      expect(stats!.latest).toBe(1420);
+      expect(stats!.max).toBe(1420);
+      expect(stats!.min).toBe(1400);
+      expect(stats!.avg).toBe(1410);
+      expect(stats!.wins).toBe(1);
+      expect(stats!.losses).toBe(1);
+      expect(stats!.draws).toBe(1);
+      expect(stats!.total).toBe(3);
+      expect(stats!.winsAsB).toBe(1);
+      expect(stats!.totalAsB).toBe(2);
+      expect(stats!.winsAsN).toBe(0);
+      expect(stats!.totalAsN).toBe(1);
+      expect(stats!.delta).toBe(10); // 1420 - 1410
+    });
+
+    it('devuelve null si no hay partidas de ajedrez', () => {
+      const stats = calculateChessStats([]);
+      expect(stats).toBeNull();
+
+      const nonChessRuns: RawRun[] = [
+        { id: '1', timestamp: '2026-06-01T10:00:00', juego: 'Patches', yo: 20, media: 40, ahorro: 20, contexto: 'Exploración' }
+      ];
+      const stats2 = calculateChessStats(nonChessRuns);
+      expect(stats2).toBeNull();
+    });
+
+    it('calcula delta como null si solo hay una partida de ajedrez', () => {
+      const chessRuns: RawRun[] = [
+        { id: 'c1', timestamp: '2026-06-01T10:00:00', juego: 'Chess', yo: 1400, media: 1500, ahorro: 0, contexto: 'Exploración', color: 'B', resultado: 'V' }
+      ];
+      const stats = calculateChessStats(chessRuns);
+      expect(stats).not.toBeNull();
+      expect(stats!.delta).toBeNull();
     });
   });
 });
